@@ -7,14 +7,15 @@ from contextlib import asynccontextmanager
 from datetime import date
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, File, Request, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, field_validator
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from forecast_model import build_predictions
+from forecast_model import build_predictions, build_predictions_from_upload
 
 load_dotenv()
 
@@ -63,6 +64,27 @@ async def predict():
     return _predictions
 
 
+@app.post("/api/forecast")
+async def forecast(file: UploadFile = File(...)):
+    """Forecast uploaded UPI/POS history without replacing the sample cache."""
+    if not file.filename or not file.filename.lower().endswith(".csv"):
+        return JSONResponse(status_code=400, content={"error": "Please upload a CSV file"})
+
+    raw = await file.read()
+    if len(raw) > 5 * 1024 * 1024:
+        return JSONResponse(status_code=413, content={"error": "CSV file must be smaller than 5 MB"})
+
+    try:
+        predictions, model_info = await run_in_threadpool(build_predictions_from_upload, raw)
+    except ValueError as exc:
+        return JSONResponse(status_code=422, content={"error": str(exc)})
+    except Exception:  # noqa: BLE001
+        logger.exception("uploaded forecast failed")
+        return JSONResponse(status_code=500, content={"error": "Could not build a forecast from this file"})
+
+    return {"predictions": predictions, "model": model_info}
+
+
 # ── advisor ────────────────────────────────────────────────────────
 
 _FALLBACK_IDEAS: list[str] = [
@@ -73,7 +95,11 @@ _FALLBACK_IDEAS: list[str] = [
 
 _ADVISOR_PROMPT_TEMPLATE = (
     "You are a helpful retail advisor for an Indian shopkeeper. "
-    "The shopkeeper is short by ₹{amount} to pay their wholesaler on {due_date}. "
+    "The shopkeeper is short by ₹{amount} to pay a wholesaler on {due_date}. "
+    "Their shop picture is: ₹{bank_today} in the bank today, ₹{drawer_cash} in the drawer today, "
+    "₹{expected_upi} expected from UPI, ₹{expected_cash} expected from cash sales, "
+    "₹{money_going_out} going out, and ₹{promised_payments} already owed. "
+    "The planned order is ₹{order_amount}. "
     "Give exactly 3 short, practical ideas to raise this cash within a week. "
     "Use local options such as a clearance sale on slow stock, WhatsApp pre-booking with regular customers, "
     "or asking the wholesaler for a few extra days or a post-dated cheque. "
@@ -87,12 +113,34 @@ _ADVISOR_PROMPT_TEMPLATE = (
 class AdvisorRequest(BaseModel):
     shortfall: int
     dueDate: str
+    bankToday: int = 0
+    drawerCash: int = 0
+    expectedUpi: int = 0
+    expectedCash: int = 0
+    moneyGoingOut: int = 0
+    promisedPayments: int = 0
+    orderAmount: int = 0
 
     @field_validator("shortfall")
     @classmethod
     def shortfall_range(cls, v: int) -> int:
         if v <= 0 or v > 100_000_000:
             raise ValueError("shortfall must be between 1 and 100000000")
+        return v
+
+    @field_validator(
+        "bankToday",
+        "drawerCash",
+        "expectedUpi",
+        "expectedCash",
+        "moneyGoingOut",
+        "promisedPayments",
+        "orderAmount",
+    )
+    @classmethod
+    def amounts_nonnegative(cls, v: int) -> int:
+        if v < 0 or v > 100_000_000:
+            raise ValueError("amounts must be between 0 and 100000000")
         return v
 
     @field_validator("dueDate")
@@ -148,6 +196,13 @@ async def advisor(req: AdvisorRequest) -> list[str]:
         prompt = _ADVISOR_PROMPT_TEMPLATE.format(
             amount=amount_str,
             due_date=due_date_str,
+            bank_today=_format_indian(req.bankToday),
+            drawer_cash=_format_indian(req.drawerCash),
+            expected_upi=_format_indian(req.expectedUpi),
+            expected_cash=_format_indian(req.expectedCash),
+            money_going_out=_format_indian(req.moneyGoingOut),
+            promised_payments=_format_indian(req.promisedPayments),
+            order_amount=_format_indian(req.orderAmount),
         )
 
         response = client.models.generate_content(

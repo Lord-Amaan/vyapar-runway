@@ -3,6 +3,13 @@ export interface UpiDay {
   amount: number;
 }
 
+export interface ShopInputs {
+  bankBalance: number;
+  drawerCash: number;
+  moneyGoingOut: number;
+  promisedPayments: number;
+}
+
 export interface ForecastDay {
   date: string;
   bankMoney: number;

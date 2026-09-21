@@ -129,14 +129,14 @@ export default function DualRunwayChart({ forecast, cashOutOf10 }: DualRunwayCha
 
             <Tooltip content={<CustomTooltip />} />
 
-            {/* Bank Money — solid blue, stacked first (bottom) */}
+            {/* Bank Money — solid copper, stacked first (bottom) */}
             <Area
               type="monotone"
               dataKey="bankMoney"
               name={BANK_LABEL}
               stackId="runway"
-              stroke="#2563EB"
-              fill="#2563EB"
+              stroke="#B65F3E"
+              fill="#B65F3E"
               fillOpacity={1}
               isAnimationActive={false}
               dot={false}
@@ -165,7 +165,7 @@ export default function DualRunwayChart({ forecast, cashOutOf10 }: DualRunwayCha
         {/* Bank Money legend swatch */}
         <span className="flex items-center gap-1.5">
           <svg width="14" height="14" aria-hidden="true">
-            <rect width="14" height="14" fill="#2563EB" rx="2" />
+            <rect width="14" height="14" fill="#B65F3E" rx="2" />
           </svg>
           <span className="text-[13px] text-gray-600">{BANK_LABEL}</span>
         </span>

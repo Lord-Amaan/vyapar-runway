@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Lightbulb } from "lucide-react";
-import { fetchAdvice } from "../lib/api";
+import { fetchAdvice, type AdvisorContext } from "../lib/api";
 import {
   ASK_AI_LABEL,
   ADVISOR_HEADING,
@@ -12,11 +12,22 @@ import {
 interface AdvisorPanelProps {
   shortfall: number;
   dueDate: string;
+  context: AdvisorContext;
 }
 
 type AdvisorState = "idle" | "loading" | "success" | "error";
 
-export default function AdvisorPanel({ shortfall, dueDate }: AdvisorPanelProps) {
+export default function AdvisorPanel({ shortfall, dueDate, context }: AdvisorPanelProps) {
+  const {
+    bankToday,
+    drawerCash,
+    expectedUpi,
+    expectedCash,
+    moneyGoingOut,
+    promisedPayments,
+    orderAmount,
+  } = context;
+  const contextKey = `${bankToday}:${drawerCash}:${expectedUpi}:${expectedCash}:${moneyGoingOut}:${promisedPayments}:${orderAmount}`;
   const [state, setState] = useState<AdvisorState>("idle");
   const [ideas, setIdeas] = useState<[string, string, string] | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -27,7 +38,11 @@ export default function AdvisorPanel({ shortfall, dueDate }: AdvisorPanelProps) 
     abortRef.current = null;
     setState("idle");
     setIdeas(null);
-  }, [shortfall, dueDate]);
+  }, [
+    shortfall,
+    dueDate,
+    contextKey,
+  ]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -43,7 +58,7 @@ export default function AdvisorPanel({ shortfall, dueDate }: AdvisorPanelProps) 
     setState("loading");
     setIdeas(null);
 
-    fetchAdvice(shortfall, dueDate, controller.signal)
+    fetchAdvice(shortfall, dueDate, context, controller.signal)
       .then((result) => {
         if (controller.signal.aborted) return;
         setIdeas(result);
@@ -73,7 +88,7 @@ export default function AdvisorPanel({ shortfall, dueDate }: AdvisorPanelProps) 
           <button
             id="ask-ai-btn"
             onClick={handleAskAI}
-            className="h-11 px-4 rounded-md border border-gray-300 bg-white text-gray-900 font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-600 flex items-center gap-2"
+            className="secondary-action h-11 px-4 rounded-md border border-gray-300 bg-white text-gray-900 font-medium focus:outline-none focus:ring-2 flex items-center gap-2"
           >
             <Lightbulb size={16} strokeWidth={1.75} aria-hidden="true" />
             {ASK_AI_LABEL}
@@ -110,7 +125,7 @@ export default function AdvisorPanel({ shortfall, dueDate }: AdvisorPanelProps) 
             <button
               id="advisor-retry-btn"
               onClick={handleRetry}
-              className="mt-3 h-11 px-4 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="primary-action mt-3 h-11 px-4 rounded-md text-white font-medium focus:outline-none focus:ring-2"
             >
               Retry
             </button>

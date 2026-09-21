@@ -35,7 +35,7 @@ export default function CalibrationSlider({ value, onChange }: CalibrationSlider
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
           className="w-full"
-          style={{ accentColor: "#2563EB" }}
+          style={{ accentColor: "#B65F3E" }}
           aria-label="Cash customers out of 10"
           aria-valuemin={0}
           aria-valuemax={8}

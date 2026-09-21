@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { CircleCheck, TriangleAlert, CircleX } from "lucide-react";
-import type { ForecastDay } from "../types";
+import type { ForecastDay, ShopInputs } from "../types";
 import { totalsUntil, getVerdict } from "../lib/forecast";
 import { formatINR, formatShortDate } from "../lib/format";
 import {
   PAYMENT_LABEL,
-  BANK_LABEL,
-  GALLA_LABEL,
   SIMULATOR_HEADING,
   DATE_LABEL,
   VERDICT_IDLE_TEXT,
@@ -20,6 +18,7 @@ import AdvisorPanel from "./AdvisorPanel";
 interface RestockSimulatorProps {
   forecast: ForecastDay[];
   cashOutOf10: number;
+  shopInputs: ShopInputs;
 }
 
 /** Format a number with Indian grouping (e.g. 250000 → "2,50,000"). */
@@ -27,28 +26,31 @@ function formatIndian(n: number): string {
   return new Intl.NumberFormat("en-IN").format(n);
 }
 
-/**
- * Compute the prefill order amount: 125% of the bank-only total through day 25,
- * rounded to the nearest ₹10,000. This ensures the verdict is Yellow at slider=4
- * (where galla = 0.667×bank, so total = 1.667×bank > 1.25×bank) and Red at slider=1
- * (where total = 1.111×bank < 1.25×bank).
- */
-function computePrefillAmount(forecast: ForecastDay[], prefillDate: string): number {
-  const { bank } = totalsUntil(forecast, prefillDate);
-  const raw = bank * 1.25;
+/** Start with 75% of the money available by the sample due date as a cautious example order. */
+function computePrefillAmount(
+  forecast: ForecastDay[],
+  prefillDate: string,
+  shopInputs: ShopInputs,
+): number {
+  const { bank, galla } = totalsUntil(forecast, prefillDate);
+  const available =
+    shopInputs.bankBalance + shopInputs.drawerCash + bank + galla -
+    shopInputs.moneyGoingOut - shopInputs.promisedPayments;
+  const raw = Math.max(0, available * 0.75);
   return Math.max(10000, Math.round(raw / 10000) * 10000);
 }
 
 export default function RestockSimulator({
   forecast,
   cashOutOf10,
+  shopInputs,
 }: RestockSimulatorProps) {
   const minDate = forecast[0]?.date ?? "";
   const maxDate = forecast[forecast.length - 1]?.date ?? "";
 
   // Prefill date = 25th day (index 24); prefill amount = 125% of bank total till that date
   const prefillDate = forecast[24]?.date ?? maxDate;
-  const prefillAmount = computePrefillAmount(forecast, prefillDate);
+  const prefillAmount = computePrefillAmount(forecast, prefillDate, shopInputs);
 
   const [orderAmount, setOrderAmount] = useState<number>(prefillAmount);
   const [rawInput, setRawInput] = useState<string>(formatIndian(prefillAmount));
@@ -64,9 +66,12 @@ export default function RestockSimulator({
   const dateErrorText = `Pick a date between ${minLabel} and ${maxLabel}.`;
 
   // Compute verdict
-  const { bank, galla } = dateValid
+  const forecastTotals = dateValid
     ? totalsUntil(forecast, dueDate)
     : { bank: 0, galla: 0 };
+  const bank = shopInputs.bankBalance + forecastTotals.bank -
+    shopInputs.moneyGoingOut - shopInputs.promisedPayments;
+  const galla = shopInputs.drawerCash + forecastTotals.galla;
 
   const verdict =
     !dateValid || orderAmount <= 0
@@ -128,7 +133,7 @@ export default function RestockSimulator({
           heading: VERDICT_YELLOW_HEADING,
           body: (
             <p className="text-[16px] mt-1">
-              {BANK_LABEL} covers{" "}
+              Money in the bank covers{" "}
               <span style={{ fontVariantNumeric: "tabular-nums" }}>
                 {formatINR(bank)}
               </span>
@@ -156,7 +161,7 @@ export default function RestockSimulator({
           heading: VERDICT_RED_HEADING,
           body: (
             <p className="text-[16px] mt-1">
-              Even with Galla Cash you may be{" "}
+              Even with your drawer cash you may be{" "}
               <span style={{ fontVariantNumeric: "tabular-nums" }}>
                 {formatINR(verdict.shortBy)}
               </span>{" "}
@@ -234,7 +239,7 @@ export default function RestockSimulator({
             min={minDate}
             max={maxDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 text-[16px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="focus-copper w-full border border-gray-300 rounded-md px-3 text-[16px] text-gray-900 focus:outline-none focus:ring-2"
             style={{ height: "44px" }}
           />
           {/* Inline date validation error */}
@@ -292,7 +297,7 @@ export default function RestockSimulator({
           {/* Bank row */}
           <div className="flex items-baseline justify-between gap-4">
             <span className="text-[14px] text-gray-600">
-              {BANK_LABEL} till {dueDateLabel}
+              Money in bank after payments till {dueDateLabel}
             </span>
             <span
               className="text-[16px] font-medium text-gray-900"
@@ -303,7 +308,7 @@ export default function RestockSimulator({
           </div>
           {/* Galla row */}
           <div className="flex items-baseline justify-between gap-4">
-            <span className="text-[14px] text-gray-600">{GALLA_LABEL}</span>
+            <span className="text-[14px] text-gray-600">Cash in drawer</span>
             <span
               className="text-[16px] font-medium text-gray-900"
               style={{ fontVariantNumeric: "tabular-nums" }}
@@ -323,8 +328,7 @@ export default function RestockSimulator({
           </div>
           {/* Caption */}
           <p className="mt-1 text-[14px] text-gray-500">
-            Galla Cash is a guess based on {cashOutOf10} out of 10 customers
-            paying cash.
+            Expected cash includes the money already in your drawer and a guess based on {cashOutOf10} out of 10 customers paying cash.
           </p>
         </div>
       )}
@@ -335,6 +339,15 @@ export default function RestockSimulator({
           <AdvisorPanel
             shortfall={advisorShortfall}
             dueDate={dueDate}
+            context={{
+              bankToday: shopInputs.bankBalance,
+              drawerCash: shopInputs.drawerCash,
+              expectedUpi: forecastTotals.bank,
+              expectedCash: forecastTotals.galla,
+              moneyGoingOut: shopInputs.moneyGoingOut,
+              promisedPayments: shopInputs.promisedPayments,
+              orderAmount,
+            }}
           />
         </div>
       )}
