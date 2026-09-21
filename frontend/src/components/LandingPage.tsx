@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { ArrowRight, BarChart3, Check, CircleDollarSign, Menu, ShieldCheck, WalletCards } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, BarChart3, Check, CircleDollarSign, Menu, ShieldCheck, WalletCards, X } from "lucide-react";
 
 const productPoints = [
   {
@@ -58,6 +58,18 @@ function goToApp() {
 }
 
 export default function LandingPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.history.pushState(null, "", `#${id}`);
+    }
+  };
+
   useEffect(() => {
     const elements = document.querySelectorAll<HTMLElement>(".scroll-reveal");
 
@@ -87,15 +99,43 @@ export default function LandingPage() {
           <span>VyaparRunway</span>
         </a>
         <nav className="hidden md:flex items-center gap-7" aria-label="Main navigation">
-          <a href="#how-it-works">How it works</a>
-          <a href="#built-for">Built for retail</a>
-          <a href="#why-it-matters">Why it matters</a>
+          <a href="#how-it-works" onClick={(e) => scrollToSection(e, "how-it-works")}>
+            How it works
+          </a>
+          <a href="#built-for" onClick={(e) => scrollToSection(e, "built-for")}>
+            Built for retail
+          </a>
+          <a href="#why-it-matters" onClick={(e) => scrollToSection(e, "why-it-matters")}>
+            Why it matters
+          </a>
         </nav>
         <button type="button" className="landing-nav-cta" onClick={goToApp}>
           Get started <ArrowRight size={16} aria-hidden="true" />
         </button>
-        <Menu className="md:hidden" size={20} aria-label="Menu" />
+        <button
+          type="button"
+          className="md:hidden text-[#faf9f6] p-1.5 focus:outline-none focus:ring-1 focus:ring-[#d88766] rounded cursor-pointer"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+          aria-expanded={mobileMenuOpen}
+        >
+          {mobileMenuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
+        </button>
       </header>
+
+      {mobileMenuOpen && (
+        <div className="md:hidden sticky top-[68px] z-40 bg-[#190b05] border-b border-[rgba(250,249,246,0.16)] px-6 py-4 flex flex-col gap-4 text-[#faf9f6] text-[14px]">
+          <a href="#how-it-works" onClick={(e) => scrollToSection(e, "how-it-works")}>
+            How it works
+          </a>
+          <a href="#built-for" onClick={(e) => scrollToSection(e, "built-for")}>
+            Built for retail
+          </a>
+          <a href="#why-it-matters" onClick={(e) => scrollToSection(e, "why-it-matters")}>
+            Why it matters
+          </a>
+        </div>
+      )}
 
       <main>
         <section className="landing-hero">
@@ -110,7 +150,13 @@ export default function LandingPage() {
                 <button type="button" className="landing-primary" onClick={goToApp}>
                   Get started <ArrowRight size={18} aria-hidden="true" />
                 </button>
-                <a className="landing-text-link" href="#how-it-works">See how it works <ArrowRight size={16} aria-hidden="true" /></a>
+                <a
+                  className="landing-text-link"
+                  href="#how-it-works"
+                  onClick={(e) => scrollToSection(e, "how-it-works")}
+                >
+                  See how it works <ArrowRight size={16} aria-hidden="true" />
+                </a>
               </div>
             </div>
 

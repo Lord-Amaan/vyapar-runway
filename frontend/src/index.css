@@ -13,6 +13,17 @@
   --setu-copper-soft: #f6e8e0;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
+}
+
+#how-it-works,
+#built-for,
+#why-it-matters {
+  scroll-margin-top: 88px;
+}
+
 body {
   background-color: var(--setu-paper);
   color: var(--setu-ink);
@@ -925,6 +936,8 @@ h3 {
 }
 
 @media (max-width: 800px) {
+  html { scroll-padding-top: 76px; }
+  #how-it-works, #built-for, #why-it-matters { scroll-margin-top: 76px; }
   .landing-nav { height: 68px; padding: 0 18px; }
   .landing-nav-cta { margin-left: auto; margin-right: 17px; }
   .landing-hero-inner,
