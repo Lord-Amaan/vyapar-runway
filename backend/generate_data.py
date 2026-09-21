@@ -81,8 +81,8 @@ def generate_csv() -> pd.DataFrame:
         if rng.random() < 0.02:
             noise *= 0.7  # slow-day shock
 
-        value = base * trend if False else base * weekly * payday * yearly * festival * noise  # noqa: SIM211
         # (the ``trend`` is already baked into ``base``)
+        value = base * weekly * payday * yearly * festival * noise
 
         # round to nearest 50, minimum 500
         value = max(500, round(value / 50) * 50)
