@@ -7,6 +7,14 @@ export const SAMPLE_DATA_NOTE = "Sample data for demo";
 
 export const BANK_SUM_LABEL = "Expected Bank Balance (UPI) · next 30 days";
 export const BANK_SUM_CAPTION = "Predicted from 3 years of sample UPI data";
+export const TOTAL_INFLOW_LABEL = "Expected Total Inflow · next 30 days";
+export const TOTAL_INFLOW_CAPTION = "Bank UPI + Estimated Galla Cash combined";
+export const DAILY_AVG_LABEL = "Daily Average";
+export const DAILY_AVG_CAPTION = "Expected average intake per day";
+export const PEAK_DAY_LABEL = "Peak Rush Day";
+export const PEAK_DAY_CAPTION = "Highest single-day sales spike";
+export const SAFE_BUDGET_LABEL = "Safe Stocking Limit";
+export const SAFE_BUDGET_CAPTION = "75% of bank balance to retain a buffer";
 export const LOADING_TEXT = "Loading…";
 export const ERROR_TEXT =
   "Could not load your bank data. Check that the backend is running.";
