@@ -5,7 +5,7 @@ export interface UpiDay {
 
 export interface ForecastDay {
   date: string;
-  bankBalance: number;
+  bankMoney: number;
   gallaCash: number;
   total?: number;
   [key: string]: any;

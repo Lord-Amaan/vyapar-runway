@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import {
   APP_TITLE,
   APP_SUBTITLE,
@@ -8,12 +9,21 @@ import {
   ERROR_TEXT,
 } from "./copy";
 import { formatINR } from "./lib/format";
+import { buildForecast } from "./lib/forecast";
 import { useUpiData } from "./hooks/useUpiData";
+import CalibrationSlider from "./components/CalibrationSlider";
+import DualRunwayChart from "./components/DualRunwayChart";
 
 export default function App() {
   const { days, status, retry } = useUpiData();
+  const [cashOutOf10, setCashOutOf10] = useState(4);
 
   const total = days.reduce((sum, d) => sum + d.amount, 0);
+
+  const forecast = useMemo(
+    () => buildForecast(days, cashOutOf10),
+    [days, cashOutOf10],
+  );
 
   return (
     <div className="min-h-screen bg-white">
@@ -47,19 +57,35 @@ export default function App() {
         )}
 
         {status === "success" && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5">
-            <p className="text-[14px] text-gray-500">{BANK_SUM_LABEL}</p>
-            <p
-              className="mt-2 text-[30px] font-semibold text-gray-900"
-              style={{ fontVariantNumeric: "tabular-nums" }}
-            >
-              {formatINR(total)}
-            </p>
-            <p className="mt-1 text-[14px] text-gray-500">
-              {BANK_SUM_CAPTION}
-            </p>
-            <p className="text-[14px] text-gray-500">{SAMPLE_DATA_NOTE}</p>
-          </div>
+          <>
+            {/* Prompt 2 card: bank sum */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5">
+              <p className="text-[14px] text-gray-500">{BANK_SUM_LABEL}</p>
+              <p
+                className="mt-2 text-[30px] font-semibold text-gray-900"
+                style={{ fontVariantNumeric: "tabular-nums" }}
+              >
+                {formatINR(total)}
+              </p>
+              <p className="mt-1 text-[14px] text-gray-500">
+                {BANK_SUM_CAPTION}
+              </p>
+              <p className="text-[14px] text-gray-500">{SAMPLE_DATA_NOTE}</p>
+            </div>
+
+            {/* Calibration slider */}
+            <div className="mt-4">
+              <CalibrationSlider
+                value={cashOutOf10}
+                onChange={setCashOutOf10}
+              />
+            </div>
+
+            {/* Dual-band runway chart */}
+            <div className="mt-4">
+              <DualRunwayChart forecast={forecast} cashOutOf10={cashOutOf10} />
+            </div>
+          </>
         )}
       </main>
     </div>
