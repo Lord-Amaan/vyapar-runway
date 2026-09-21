@@ -15,6 +15,7 @@ import {
   VERDICT_YELLOW_HEADING,
   VERDICT_RED_HEADING,
 } from "../copy";
+import AdvisorPanel from "./AdvisorPanel";
 
 interface RestockSimulatorProps {
   forecast: ForecastDay[];
@@ -26,6 +27,18 @@ function formatIndian(n: number): string {
   return new Intl.NumberFormat("en-IN").format(n);
 }
 
+/**
+ * Compute the prefill order amount: 125% of the bank-only total through day 25,
+ * rounded to the nearest ₹10,000. This ensures the verdict is Yellow at slider=4
+ * (where galla = 0.667×bank, so total = 1.667×bank > 1.25×bank) and Red at slider=1
+ * (where total = 1.111×bank < 1.25×bank).
+ */
+function computePrefillAmount(forecast: ForecastDay[], prefillDate: string): number {
+  const { bank } = totalsUntil(forecast, prefillDate);
+  const raw = bank * 1.25;
+  return Math.max(10000, Math.round(raw / 10000) * 10000);
+}
+
 export default function RestockSimulator({
   forecast,
   cashOutOf10,
@@ -33,11 +46,12 @@ export default function RestockSimulator({
   const minDate = forecast[0]?.date ?? "";
   const maxDate = forecast[forecast.length - 1]?.date ?? "";
 
-  // Prefill: order = 2,50,000; date = 25th day in the forecast
+  // Prefill date = 25th day (index 24); prefill amount = 125% of bank total till that date
   const prefillDate = forecast[24]?.date ?? maxDate;
+  const prefillAmount = computePrefillAmount(forecast, prefillDate);
 
-  const [orderAmount, setOrderAmount] = useState<number>(250000);
-  const [rawInput, setRawInput] = useState<string>(formatIndian(250000));
+  const [orderAmount, setOrderAmount] = useState<number>(prefillAmount);
+  const [rawInput, setRawInput] = useState<string>(formatIndian(prefillAmount));
   const [dueDate, setDueDate] = useState<string>(prefillDate);
 
   // Validate date
@@ -158,6 +172,11 @@ export default function RestockSimulator({
   const config = buildVerdictConfig();
 
   const showBreakdown = verdict.level !== "idle" && config !== null;
+  const showAdvisor = verdict.level === "yellow" || verdict.level === "red";
+
+  // shortfall passed to advisor: fromGalla for yellow, shortBy for red
+  const advisorShortfall =
+    verdict.level === "red" ? verdict.shortBy : verdict.fromGalla;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5">
@@ -307,6 +326,16 @@ export default function RestockSimulator({
             Galla Cash is a guess based on {cashOutOf10} out of 10 customers
             paying cash.
           </p>
+        </div>
+      )}
+
+      {/* Ask AI panel — mounted only when verdict is yellow or red */}
+      {showAdvisor && (
+        <div className="mt-4">
+          <AdvisorPanel
+            shortfall={advisorShortfall}
+            dueDate={dueDate}
+          />
         </div>
       )}
     </div>

@@ -26,3 +26,11 @@ export const VERDICT_GREEN_TEXT =
   "Your Bank Balance (UPI) alone will cover this Wholesaler Payment.";
 export const VERDICT_YELLOW_HEADING = "Needs Galla Cash";
 export const VERDICT_RED_HEADING = "Too Risky";
+
+// Ask AI advisor
+export const ASK_AI_LABEL = "Ask AI";
+export const ADVISOR_HEADING = "Ideas to raise the cash";
+export const ADVISOR_LOADING = "Getting ideas…";
+export const ADVISOR_ERROR =
+  "Could not get ideas. Check that the backend is running.";
+export const ADVISOR_NOTE = "Ideas to try. You know your shop best.";
