@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+import logging
+from contextlib import asynccontextmanager
+
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -5,9 +10,32 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from forecast_model import build_predictions
+
 load_dotenv()
 
-app = FastAPI()
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(name)s %(levelname)s  %(message)s",
+    datefmt="%H:%M:%S",
+)
+logger = logging.getLogger(__name__)
+
+# ── in-memory cache filled once at startup ─────────────────────────
+_predictions: list[dict] = []
+_model_info: dict = {}
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):  # noqa: ANN001, ARG001
+    global _predictions, _model_info  # noqa: PLW0603
+    logger.info("Building predictions (this runs once at startup) …")
+    _predictions, _model_info = build_predictions()
+    logger.info("Startup complete — %d predictions cached", len(_predictions))
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -18,9 +46,20 @@ app.add_middleware(
 )
 
 
+# ── routes ─────────────────────────────────────────────────────────
+
+
 @app.get("/api/health")
 async def health():
-    return {"status": "ok"}
+    return {"status": "ok", "model": _model_info}
+
+
+@app.get("/api/predict")
+async def predict():
+    return _predictions
+
+
+# ── error handlers (kept from Prompt 1) ────────────────────────────
 
 
 @app.exception_handler(StarletteHTTPException)
@@ -29,7 +68,9 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         return JSONResponse(status_code=404, content={"error": "Not found"})
     return JSONResponse(
         status_code=exc.status_code,
-        content={"error": exc.detail if isinstance(exc.detail, str) else "Something went wrong"},
+        content={
+            "error": exc.detail if isinstance(exc.detail, str) else "Something went wrong"
+        },
     )
 
 
