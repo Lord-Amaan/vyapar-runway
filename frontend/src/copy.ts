@@ -15,3 +15,14 @@ export const HIGH_CASH_WARNING =
   "High Cash Dependency: Your estimate relies heavily on cash walk-ins. Keep a safety buffer.";
 export const CASH_HELPER_TEXT =
   "Not sure? Think of the last 10 customers. How many paid cash?";
+
+// Restock Simulator
+export const SIMULATOR_HEADING = "Can I afford this order?";
+export const DATE_LABEL = "Payment Due Date";
+export const VERDICT_IDLE_TEXT =
+  "Enter the amount and pick a date to see if it is safe.";
+export const VERDICT_GREEN_HEADING = "Safe to Buy";
+export const VERDICT_GREEN_TEXT =
+  "Your Bank Balance (UPI) alone will cover this Wholesaler Payment.";
+export const VERDICT_YELLOW_HEADING = "Needs Galla Cash";
+export const VERDICT_RED_HEADING = "Too Risky";

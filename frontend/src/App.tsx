@@ -13,6 +13,7 @@ import { buildForecast } from "./lib/forecast";
 import { useUpiData } from "./hooks/useUpiData";
 import CalibrationSlider from "./components/CalibrationSlider";
 import DualRunwayChart from "./components/DualRunwayChart";
+import RestockSimulator from "./components/RestockSimulator";
 
 export default function App() {
   const { days, status, retry } = useUpiData();
@@ -84,6 +85,11 @@ export default function App() {
             {/* Dual-band runway chart */}
             <div className="mt-4">
               <DualRunwayChart forecast={forecast} cashOutOf10={cashOutOf10} />
+            </div>
+
+            {/* Restock simulator */}
+            <div className="mt-4">
+              <RestockSimulator forecast={forecast} cashOutOf10={cashOutOf10} />
             </div>
           </>
         )}

@@ -32,3 +32,50 @@ export function buildForecast(days: UpiDay[], cashOutOf10: number): ForecastDay[
     };
   });
 }
+
+/**
+ * Sum bankMoney and gallaCash for all days with date <= dueDateIso.
+ * ISO date strings compare correctly lexicographically.
+ */
+export function totalsUntil(
+  forecast: ForecastDay[],
+  dueDateIso: string,
+): { bank: number; galla: number } {
+  let bank = 0;
+  let galla = 0;
+  for (const day of forecast) {
+    if (day.date <= dueDateIso) {
+      bank += day.bankMoney;
+      galla += day.gallaCash;
+    }
+  }
+  return { bank, galla };
+}
+
+export type VerdictLevel = "green" | "yellow" | "red" | "idle";
+
+export interface VerdictResult {
+  level: VerdictLevel;
+  fromGalla: number;
+  shortBy: number;
+}
+
+/**
+ * Verdict logic (CLAUDE.md §4):
+ *   idle   — order <= 0
+ *   green  — bank >= order
+ *   yellow — bank < order AND bank + galla >= order  (fromGalla = order - bank)
+ *   red    — bank + galla < order                    (shortBy = order - bank - galla)
+ */
+export function getVerdict(
+  order: number,
+  bank: number,
+  galla: number,
+): VerdictResult {
+  if (order <= 0) return { level: "idle", fromGalla: 0, shortBy: 0 };
+  if (bank >= order) return { level: "green", fromGalla: 0, shortBy: 0 };
+  if (bank + galla >= order) {
+    return { level: "yellow", fromGalla: order - bank, shortBy: 0 };
+  }
+  return { level: "red", fromGalla: 0, shortBy: order - bank - galla };
+}
