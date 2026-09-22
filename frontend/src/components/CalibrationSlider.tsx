@@ -1,11 +1,14 @@
-import { CASH_HELPER_TEXT } from "../copy";
+import { translate, type Language } from "../i18n";
 
 interface CalibrationSliderProps {
   value: number;
   onChange: (value: number) => void;
+  language: Language;
 }
 
-export default function CalibrationSlider({ value, onChange }: CalibrationSliderProps) {
+export default function CalibrationSlider({ value, onChange, language }: CalibrationSliderProps) {
+  const t = (key: Parameters<typeof translate>[1]) => translate(language, key);
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5">
       {/* Label row */}
@@ -14,13 +17,13 @@ export default function CalibrationSlider({ value, onChange }: CalibrationSlider
           htmlFor="cash-slider"
           className="text-[16px] text-gray-900"
         >
-          Out of 10 customers, how many pay in physical cash?
+          {t("cashSliderLabel")}
         </label>
         <span
           className="text-[16px] font-semibold text-gray-900 whitespace-nowrap tabular-nums"
           aria-hidden="true"
         >
-          {value} out of 10
+          {value} {t("cashSliderValueText")}
         </span>
       </div>
 
@@ -51,7 +54,7 @@ export default function CalibrationSlider({ value, onChange }: CalibrationSlider
       </div>
 
       {/* Helper text */}
-      <p className="mt-2 text-[14px] text-gray-500">{CASH_HELPER_TEXT}</p>
+      <p className="mt-2 text-[14px] text-gray-500">{t("cashHelper")}</p>
     </div>
   );
 }

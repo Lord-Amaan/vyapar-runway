@@ -1,18 +1,6 @@
 import type { ForecastDay, ShopInputs } from "../types";
-import {
-  BANK_LABEL,
-  BANK_SUM_CAPTION,
-  SAMPLE_DATA_NOTE,
-  TOTAL_INFLOW_LABEL,
-  TOTAL_INFLOW_CAPTION,
-  DAILY_AVG_LABEL,
-  DAILY_AVG_CAPTION,
-  PEAK_DAY_LABEL,
-  PEAK_DAY_CAPTION,
-  SAFE_BUDGET_LABEL,
-  GALLA_LABEL,
-} from "../copy";
 import { formatINR, formatCompactINR, formatShortDate } from "../lib/format";
+import { translate, type Language } from "../i18n";
 
 interface RetailSummaryProps {
   forecast: ForecastDay[];
@@ -20,6 +8,7 @@ interface RetailSummaryProps {
   cashOutOf10: number;
   shopInputs: ShopInputs;
   onEditShop: () => void;
+  language?: Language;
 }
 
 export default function RetailSummary({
@@ -27,7 +16,9 @@ export default function RetailSummary({
   totalBank,
   shopInputs,
   onEditShop,
+  language = "en",
 }: RetailSummaryProps) {
+  const t = (key: Parameters<typeof translate>[1]) => translate(language, key);
   const totalGalla = forecast.reduce((sum, d) => sum + d.gallaCash, 0);
   const totalInflow = totalBank + totalGalla;
   const daysCount = forecast.length || 30;
@@ -56,33 +47,35 @@ export default function RetailSummary({
     <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5">
       <div className="shop-input-summary">
         <div>
-          <p className="text-[14px] text-gray-500">Your money today</p>
+          <p className="text-[14px] text-gray-500">{t("moneyTodayLabel")}</p>
           <p className="mt-1 text-[22px] font-semibold text-gray-900" style={{ fontVariantNumeric: "tabular-nums" }}>
             {formatINR(moneyToday)}
           </p>
           <p className="text-[12px] text-gray-500">
-            {formatINR(shopInputs.bankBalance)} in bank + {formatINR(shopInputs.drawerCash)} in drawer
+            {formatINR(shopInputs.bankBalance)} {t("inBank")} + {formatINR(shopInputs.drawerCash)} {t("inDrawer")}
           </p>
         </div>
         <div>
-          <p className="text-[14px] text-gray-500">Going out before your order</p>
+          <p className="text-[14px] text-gray-500">{t("goingOutLabel")}</p>
           <p className="mt-1 text-[22px] font-semibold text-gray-900" style={{ fontVariantNumeric: "tabular-nums" }}>
             {formatINR(moneyGoingOut)}
           </p>
-          <p className="text-[12px] text-gray-500">Bills and payments you told us about</p>
+          <p className="text-[12px] text-gray-500">{t("goingOutCaption")}</p>
         </div>
         <div>
-          <p className="text-[14px] text-gray-500">Left before new sales</p>
+          <p className="text-[14px] text-gray-500">{t("leftBeforeSalesLabel")}</p>
           <p className={`mt-1 text-[22px] font-semibold ${moneyLeftToday < 0 ? "text-red-700" : "text-copper"}`} style={{ fontVariantNumeric: "tabular-nums" }}>
             {formatINR(moneyLeftToday)}
           </p>
-          <button type="button" className="shop-edit-button" onClick={onEditShop}>Change shop details</button>
+          <button type="button" className="shop-edit-button" onClick={onEditShop}>
+            {t("changeShopDetails")}
+          </button>
         </div>
       </div>
 
       {/* Primary KPI: Total Store Inflow */}
       <div>
-        <p className="text-[14px] text-gray-500">{TOTAL_INFLOW_LABEL}</p>
+        <p className="text-[14px] text-gray-500">{t("totalInflowLabel")}</p>
         <p
           className="mt-2 text-[30px] font-semibold text-gray-900"
           style={{ fontVariantNumeric: "tabular-nums" }}
@@ -90,14 +83,14 @@ export default function RetailSummary({
           {formatINR(totalInflow)}
         </p>
         <p className="mt-1 text-[14px] text-gray-600">
-          <span className="font-medium text-copper">{formatINR(totalBank)}</span> {BANK_LABEL}
+          <span className="font-medium text-copper">{formatINR(totalBank)}</span> {t("bankLabel")}
           {" + "}
-          <span className="font-medium text-amber-700">{formatINR(totalGalla)}</span> {GALLA_LABEL}
+          <span className="font-medium text-amber-700">{formatINR(totalGalla)}</span> {t("gallaLabel")}
         </p>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 text-[14px] text-gray-500">
-          <span>{TOTAL_INFLOW_CAPTION}</span>
+          <span>{t("totalInflowCaption")}</span>
           <span>·</span>
-          <span>{SAMPLE_DATA_NOTE}</span>
+          <span>{t("sampleDataNote")}</span>
         </div>
       </div>
 
@@ -105,50 +98,50 @@ export default function RetailSummary({
       <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Bank UPI */}
         <div>
-          <p className="text-[14px] text-gray-500">{BANK_LABEL}</p>
+          <p className="text-[14px] text-gray-500">{t("bankLabel")}</p>
           <p
             className="mt-1 text-[18px] font-semibold text-gray-900"
             style={{ fontVariantNumeric: "tabular-nums" }}
           >
             {formatINR(totalBank)}
           </p>
-          <p className="text-[12px] text-gray-500 mt-0.5">{BANK_SUM_CAPTION}</p>
+          <p className="text-[12px] text-gray-500 mt-0.5">{t("bankSummaryCaption")}</p>
         </div>
 
         {/* Daily Average */}
         <div>
-          <p className="text-[14px] text-gray-500">{DAILY_AVG_LABEL}</p>
+          <p className="text-[14px] text-gray-500">{t("dailyAverageLabel")}</p>
           <p
             className="mt-1 text-[18px] font-semibold text-gray-900"
             style={{ fontVariantNumeric: "tabular-nums" }}
           >
-            {formatINR(dailyAvg)}/day
+            {formatINR(dailyAvg)}{t("perDay")}
           </p>
-          <p className="text-[12px] text-gray-500 mt-0.5">{DAILY_AVG_CAPTION}</p>
+          <p className="text-[12px] text-gray-500 mt-0.5">{t("dailyAverageCaption")}</p>
         </div>
 
         {/* Peak Rush Day */}
         <div>
-          <p className="text-[14px] text-gray-500">{PEAK_DAY_LABEL}</p>
+          <p className="text-[14px] text-gray-500">{t("peakDayLabel")}</p>
           <p
             className="mt-1 text-[18px] font-semibold text-gray-900"
             style={{ fontVariantNumeric: "tabular-nums" }}
           >
             {peakDay ? `${formatShortDate(peakDay.date)} (${formatCompactINR(peakAmount)})` : "—"}
           </p>
-          <p className="text-[12px] text-gray-500 mt-0.5">{PEAK_DAY_CAPTION}</p>
+          <p className="text-[12px] text-gray-500 mt-0.5">{t("peakDayCaption")}</p>
         </div>
       </div>
 
       {/* Safe Stocking Budget Guide */}
       <div className="mt-4 pt-3 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between text-[14px] text-gray-600 gap-1">
         <span>
-          <strong className="font-semibold text-gray-900">{SAFE_BUDGET_LABEL}:</strong>{" "}
+          <strong className="font-semibold text-gray-900">{t("safeBudgetLabel")}:</strong>{" "}
           <span style={{ fontVariantNumeric: "tabular-nums" }} className="font-medium text-gray-900">
             {formatINR(safeBudget)}
           </span>
         </span>
-        <span className="text-gray-500 text-[12px] sm:text-[14px]">75% kept aside for safety</span>
+        <span className="text-gray-500 text-[12px] sm:text-[14px]">{t("safetyNote")}</span>
       </div>
     </div>
   );

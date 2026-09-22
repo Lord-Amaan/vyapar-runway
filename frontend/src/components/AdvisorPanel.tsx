@@ -1,23 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { Lightbulb } from "lucide-react";
 import { fetchAdvice, type AdvisorContext } from "../lib/api";
-import {
-  ASK_AI_LABEL,
-  ADVISOR_HEADING,
-  ADVISOR_LOADING,
-  ADVISOR_ERROR,
-  ADVISOR_NOTE,
-} from "../copy";
+import { translate, type Language } from "../i18n";
 
 interface AdvisorPanelProps {
   shortfall: number;
   dueDate: string;
   context: AdvisorContext;
+  language: Language;
 }
 
 type AdvisorState = "idle" | "loading" | "success" | "error";
 
-export default function AdvisorPanel({ shortfall, dueDate, context }: AdvisorPanelProps) {
+export default function AdvisorPanel({ shortfall, dueDate, context, language }: AdvisorPanelProps) {
+  const t = (key: Parameters<typeof translate>[1]) => translate(language, key);
   const {
     bankToday,
     drawerCash,
@@ -78,7 +74,7 @@ export default function AdvisorPanel({ shortfall, dueDate, context }: AdvisorPan
     <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5">
       {/* Heading with bottom border */}
       <h3 className="text-[18px] font-semibold text-gray-900 pb-3 border-b border-gray-200">
-        {ADVISOR_HEADING}
+        {t("advisorHeading")}
       </h3>
 
       {/* aria-live region for all dynamic content */}
@@ -91,13 +87,13 @@ export default function AdvisorPanel({ shortfall, dueDate, context }: AdvisorPan
             className="secondary-action h-11 px-4 rounded-md border border-gray-300 bg-white text-gray-900 font-medium focus:outline-none focus:ring-2 flex items-center gap-2"
           >
             <Lightbulb size={16} strokeWidth={1.75} aria-hidden="true" />
-            {ASK_AI_LABEL}
+            {t("askAi")}
           </button>
         )}
 
         {/* Loading: plain text, no spinner */}
         {state === "loading" && (
-          <p className="text-[16px] text-gray-600">{ADVISOR_LOADING}</p>
+          <p className="text-[16px] text-gray-600">{t("advisorLoading")}</p>
         )}
 
         {/* Success: numbered list of 3 ideas + note */}
@@ -114,20 +110,20 @@ export default function AdvisorPanel({ shortfall, dueDate, context }: AdvisorPan
                 </li>
               ))}
             </ol>
-            <p className="mt-3 text-[14px] text-gray-500">{ADVISOR_NOTE}</p>
+            <p className="mt-3 text-[14px] text-gray-500">{t("advisorNote")}</p>
           </>
         )}
 
         {/* Error: red-tinted message + 44px Retry */}
         {state === "error" && (
           <div>
-            <p className="text-[16px] text-red-800">{ADVISOR_ERROR}</p>
+            <p className="text-[16px] text-red-800">{t("advisorError")}</p>
             <button
               id="advisor-retry-btn"
               onClick={handleRetry}
               className="primary-action mt-3 h-11 px-4 rounded-md text-white font-medium focus:outline-none focus:ring-2"
             >
-              Retry
+              {t("retryButton")}
             </button>
           </div>
         )}

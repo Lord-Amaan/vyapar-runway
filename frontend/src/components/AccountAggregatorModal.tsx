@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { translate, type Language } from "../i18n";
 
 interface AccountAggregatorModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConnected: (verifiedBalance: number) => void;
+  language?: Language;
 }
 
 type Bank = "SBI" | "HDFC" | "ICICI";
@@ -12,7 +14,9 @@ export default function AccountAggregatorModal({
   isOpen,
   onClose,
   onConnected,
+  language = "en",
 }: AccountAggregatorModalProps) {
+  const t = (key: Parameters<typeof translate>[1]) => translate(language, key);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedBank, setSelectedBank] = useState<Bank>("SBI");
   const [mobile, setMobile] = useState("98765 43210");
@@ -65,9 +69,9 @@ export default function AccountAggregatorModal({
             className="text-[20px] font-semibold leading-tight"
             style={{ fontFamily: "Sentient, 'Iowan Old Style', Baskerville, Georgia, serif", color: "#1B0D08" }}
           >
-            {step === 1 && "Connect Bank via Account Aggregator"}
-            {step === 2 && "Verify Consent OTP"}
-            {step === 3 && "Fetching Ledger"}
+            {step === 1 && t("aaStep1Title")}
+            {step === 2 && t("aaStep2Title")}
+            {step === 3 && t("aaStep3Title")}
           </h2>
           {step !== 3 && (
             <button
@@ -88,12 +92,12 @@ export default function AccountAggregatorModal({
         {step === 1 && (
           <div className="flex flex-col gap-5">
             <p className="text-[15px] leading-relaxed" style={{ color: "#716D67" }}>
-              Select your merchant current account to fetch verified digital history.
+              {t("aaStep1Desc")}
             </p>
 
             <div>
               <p className="text-[14px] font-medium mb-2" style={{ color: "#1B0D08" }}>
-                Your bank
+                {t("aaBankLabel")}
               </p>
               <div className="flex gap-2">
                 {banks.map((bank) => {
@@ -124,7 +128,7 @@ export default function AccountAggregatorModal({
                 className="block text-[14px] font-medium mb-1"
                 style={{ color: "#1B0D08" }}
               >
-                Registered mobile number
+                {t("aaMobileLabel")}
               </label>
               <input
                 id="aa-mobile"
@@ -152,7 +156,7 @@ export default function AccountAggregatorModal({
               onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#B65F3E"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#190B05"; }}
             >
-              Request Consent OTP
+              {t("aaRequestOtp")}
             </button>
           </div>
         )}
@@ -162,10 +166,10 @@ export default function AccountAggregatorModal({
           <div className="flex flex-col gap-5">
             <div>
               <p className="text-[15px] leading-relaxed" style={{ color: "#1B0D08" }}>
-                Enter OTP sent to your registered mobile
+                {t("aaOtpPrompt")}
               </p>
               <p className="text-[13px] mt-1" style={{ color: "#716D67" }}>
-                Enter demo OTP: 1234
+                {t("aaOtpDemoHint")}
               </p>
             </div>
 
@@ -175,7 +179,7 @@ export default function AccountAggregatorModal({
                 className="block text-[14px] font-medium mb-1"
                 style={{ color: "#1B0D08" }}
               >
-                OTP
+                {t("aaOtpLabel")}
               </label>
               <input
                 id="aa-otp"
@@ -203,7 +207,7 @@ export default function AccountAggregatorModal({
               onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#B65F3E"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#190B05"; }}
             >
-              Verify &amp; Fetch Ledger
+              {t("aaVerify")}
             </button>
           </div>
         )}
@@ -212,7 +216,7 @@ export default function AccountAggregatorModal({
         {step === 3 && (
           <div className="py-2">
             <p className="text-[15px] leading-relaxed" style={{ color: "#716D67" }}>
-              Fetching 12 months encrypted UPI ledger via Sahamati / Account Aggregator framework&hellip;
+              {t("aaFetching")}
             </p>
           </div>
         )}

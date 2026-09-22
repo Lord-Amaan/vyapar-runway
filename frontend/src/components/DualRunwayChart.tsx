@@ -10,17 +10,18 @@ import {
 import { TriangleAlert } from "lucide-react";
 import type { ForecastDay } from "../types";
 import { formatINR, formatShortDate, formatCompactINR } from "../lib/format";
-import { BANK_LABEL, GALLA_LABEL, SAMPLE_DATA_NOTE, HIGH_CASH_WARNING } from "../copy";
+import { translate, type Language } from "../i18n";
 
 const STRIPE_PATTERN_ID = "galla-stripes";
 
 interface DualRunwayChartProps {
   forecast: ForecastDay[];
   cashOutOf10: number;
+  language: Language;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label, bankLabel, gallaLabel, totalForDayLabel }: any) {
   if (!active || !payload || payload.length === 0) return null;
 
   const bank = (payload.find((p: any) => p.dataKey === "bankMoney")?.value as number) ?? 0;
@@ -40,11 +41,11 @@ function CustomTooltip({ active, payload, label }: any) {
     >
       <p style={{ fontWeight: 600, marginBottom: "6px" }}>{formatShortDate(label)}</p>
       <p style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
-        <span style={{ color: "#4B5563" }}>{BANK_LABEL}</span>
+        <span style={{ color: "#4B5563" }}>{bankLabel}</span>
         <span style={{ fontVariantNumeric: "tabular-nums" }}>{formatINR(bank)}</span>
       </p>
       <p style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
-        <span style={{ color: "#4B5563" }}>{GALLA_LABEL}</span>
+        <span style={{ color: "#4B5563" }}>{gallaLabel}</span>
         <span style={{ fontVariantNumeric: "tabular-nums" }}>{formatINR(galla)}</span>
       </p>
       <p
@@ -58,14 +59,17 @@ function CustomTooltip({ active, payload, label }: any) {
           fontWeight: 600,
         }}
       >
-        <span style={{ color: "#4B5563" }}>Total for the day</span>
+        <span style={{ color: "#4B5563" }}>{totalForDayLabel}</span>
         <span style={{ fontVariantNumeric: "tabular-nums" }}>{formatINR(bank + galla)}</span>
       </p>
     </div>
   );
 }
 
-export default function DualRunwayChart({ forecast, cashOutOf10 }: DualRunwayChartProps) {
+export default function DualRunwayChart({ forecast, cashOutOf10, language }: DualRunwayChartProps) {
+  const t = (key: Parameters<typeof translate>[1]) => translate(language, key);
+  const bankLabel = t("bankLabel");
+  const gallaLabel = t("gallaLabel");
   const showWarning = cashOutOf10 >= 4;
 
   return (
@@ -82,7 +86,7 @@ export default function DualRunwayChart({ forecast, cashOutOf10 }: DualRunwayCha
           }}
         >
           <TriangleAlert size={16} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: "2px" }} />
-          <span className="text-[14px]">{HIGH_CASH_WARNING}</span>
+          <span className="text-[14px]">{t("highCashWarning")}</span>
         </div>
       )}
 
@@ -127,13 +131,13 @@ export default function DualRunwayChart({ forecast, cashOutOf10 }: DualRunwayCha
               tick={{ fontSize: 12, fill: "#6B7280" }}
             />
 
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip bankLabel={bankLabel} gallaLabel={gallaLabel} totalForDayLabel={t("totalForDay")} />} />
 
             {/* Bank Money — solid copper, stacked first (bottom) */}
             <Area
               type="monotone"
               dataKey="bankMoney"
-              name={BANK_LABEL}
+              name={bankLabel}
               stackId="runway"
               stroke="#B65F3E"
               fill="#B65F3E"
@@ -147,7 +151,7 @@ export default function DualRunwayChart({ forecast, cashOutOf10 }: DualRunwayCha
             <Area
               type="monotone"
               dataKey="gallaCash"
-              name={GALLA_LABEL}
+              name={gallaLabel}
               stackId="runway"
               stroke="#F59E0B"
               fill={`url(#${STRIPE_PATTERN_ID})`}
@@ -167,7 +171,7 @@ export default function DualRunwayChart({ forecast, cashOutOf10 }: DualRunwayCha
           <svg width="14" height="14" aria-hidden="true">
             <rect width="14" height="14" fill="#B65F3E" rx="2" />
           </svg>
-          <span className="text-[13px] text-gray-600">{BANK_LABEL}</span>
+          <span className="text-[13px] text-gray-600">{bankLabel}</span>
         </span>
 
         {/* Galla Cash legend swatch — striped square */}
@@ -187,11 +191,11 @@ export default function DualRunwayChart({ forecast, cashOutOf10 }: DualRunwayCha
             </defs>
             <rect width="14" height="14" fill="url(#legend-stripes)" stroke="#F59E0B" strokeWidth="1" rx="2" />
           </svg>
-          <span className="text-[13px] text-gray-600">{GALLA_LABEL}</span>
+          <span className="text-[13px] text-gray-600">{gallaLabel}</span>
         </span>
 
         {/* Sample data note */}
-        <span className="text-[12px] text-gray-500 ml-auto">{SAMPLE_DATA_NOTE}</span>
+        <span className="text-[12px] text-gray-500 ml-auto">{t("sampleDataNote")}</span>
       </div>
     </div>
   );

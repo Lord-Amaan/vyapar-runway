@@ -3,24 +3,14 @@ import { CircleCheck, TriangleAlert, CircleX, Copy } from "lucide-react";
 import type { ForecastDay, ShopInputs } from "../types";
 import { totalsUntil, getVerdict } from "../lib/forecast";
 import { formatINR, formatShortDate } from "../lib/format";
-import {
-  PAYMENT_LABEL,
-  SIMULATOR_HEADING,
-  DATE_LABEL,
-  VERDICT_IDLE_TEXT,
-  VERDICT_GREEN_HEADING,
-  VERDICT_GREEN_TEXT,
-  VERDICT_YELLOW_HEADING,
-  VERDICT_RED_HEADING,
-  COPY_WHATSAPP,
-  COPIED_NOTICE,
-} from "../copy";
+import { translate, type Language } from "../i18n";
 import AdvisorPanel from "./AdvisorPanel";
 
 interface RestockSimulatorProps {
   forecast: ForecastDay[];
   cashOutOf10: number;
   shopInputs: ShopInputs;
+  language: Language;
 }
 
 /** Format a number with Indian grouping (e.g. 250000 → "2,50,000"). */
@@ -46,7 +36,9 @@ export default function RestockSimulator({
   forecast,
   cashOutOf10,
   shopInputs,
+  language,
 }: RestockSimulatorProps) {
+  const t = (key: Parameters<typeof translate>[1]) => translate(language, key);
   const minDate = forecast[0]?.date ?? "";
   const maxDate = forecast[forecast.length - 1]?.date ?? "";
 
@@ -67,7 +59,12 @@ export default function RestockSimulator({
   // Derive range label for error message ("1 Oct" to "30 Oct")
   const minLabel = minDate ? formatShortDate(minDate) : "";
   const maxLabel = maxDate ? formatShortDate(maxDate) : "";
-  const dateErrorText = `Pick a date between ${minLabel} and ${maxLabel}.`;
+  const dateErrorText =
+    language === "hi"
+      ? `${minLabel} और ${maxLabel} के बीच की तारीख चुनें।`
+      : language === "mr"
+      ? `${minLabel} आणि ${maxLabel} दरम्यानची तारीख निवडा.`
+      : `Pick a date between ${minLabel} and ${maxLabel}.`;
 
   // Compute verdict
   const forecastTotals = dateValid
@@ -95,11 +92,23 @@ export default function RestockSimulator({
   function buildVerdictExplanation(): string {
     switch (verdict.level) {
       case "green":
-        return VERDICT_GREEN_TEXT;
+        return t("verdictGreenText");
       case "yellow":
-        return `Money in the bank covers \u20B9${formatIndian(bank)}. You will need about \u20B9${formatIndian(verdict.fromGalla)} from your cash drawer to pay the wholesaler.`;
+        if (language === "hi") {
+          return `बैंक का पैसा ₹${formatIndian(bank)} कवर करता है। थोक व्यापारी को भुगतान के लिए आपको अपने गल्ले से लगभग ₹${formatIndian(verdict.fromGalla)} की आवश्यकता होगी।`;
+        }
+        if (language === "mr") {
+          return `बँकेतील पैसे ₹${formatIndian(bank)} भागवतात. घाऊक व्यापाऱ्याला देण्यासाठी तुम्हाला गल्ल्यातून सुमारे ₹${formatIndian(verdict.fromGalla)} ची गरज भासेल।`;
+        }
+        return `Money in the bank covers ₹${formatIndian(bank)}. You will need about ₹${formatIndian(verdict.fromGalla)} from your cash drawer to pay the wholesaler.`;
       case "red":
-        return `Even with your drawer cash you may be \u20B9${formatIndian(verdict.shortBy)} short by ${dueDateLabel}. Try a smaller order or a later date.`;
+        if (language === "hi") {
+          return `गल्ले की नकद मिलाकर भी ${dueDateLabel} तक आपके पास ₹${formatIndian(verdict.shortBy)} कम पड़ सकते हैं। छोटा ऑर्डर दें या बाद की तारीख चुनें।`;
+        }
+        if (language === "mr") {
+          return `गल्ल्यातील रोख मिळवूनही ${dueDateLabel} पर्यंत तुमच्याकडे ₹${formatIndian(verdict.shortBy)} कमी पडू शकतात. लहान ऑर्डर द्या किंवा नंतरची तारीख निवडा.`;
+        }
+        return `Even with your drawer cash you may be ₹${formatIndian(verdict.shortBy)} short by ${dueDateLabel}. Try a smaller order or a later date.`;
       default:
         return "";
     }
@@ -107,18 +116,18 @@ export default function RestockSimulator({
 
   function handleCopyWhatsApp() {
     if (config === null || verdict.level === "idle") return;
-    const currentDate = new Date().toLocaleDateString("en-IN", {
+    const currentDate = new Date().toLocaleDateString(language === "hi" ? "hi-IN" : language === "mr" ? "mr-IN" : "en-IN", {
       day: "numeric",
       month: "long",
       year: "numeric",
     });
     const text = [
-      `VyaparRunway Check — ${currentDate}`,
-      `Wholesaler Order: \u20B9${formatIndian(orderAmount)} (Due: ${dueDateLabel})`,
-      `Bank Balance (UPI) Expected: \u20B9${formatIndian(bank)}`,
-      `Galla Cash Buffer (Estimated): \u20B9${formatIndian(galla)}`,
+      `${t("appTitle")} — ${currentDate}`,
+      `${t("paymentLabel")}: ₹${formatIndian(orderAmount)} (${t("dateLabel")}: ${dueDateLabel})`,
+      `${t("bankLabel")}: ₹${formatIndian(bank)}`,
+      `${t("gallaLabel")}: ₹${formatIndian(galla)}`,
       "",
-      `Verdict: ${config.heading} — ${buildVerdictExplanation()}`,
+      `${config.heading} — ${buildVerdictExplanation()}`,
     ].join("\n");
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
@@ -160,8 +169,8 @@ export default function RestockSimulator({
               style={{ flexShrink: 0, color: "#166534" }}
             />
           ),
-          heading: VERDICT_GREEN_HEADING,
-          body: <p className="text-[16px] mt-1">{VERDICT_GREEN_TEXT}</p>,
+          heading: t("verdictGreenHeading"),
+          body: <p className="text-[16px] mt-1">{t("verdictGreenText")}</p>,
         };
       case "yellow":
         return {
@@ -176,20 +185,45 @@ export default function RestockSimulator({
               style={{ flexShrink: 0, color: "#854D0E" }}
             />
           ),
-          heading: VERDICT_YELLOW_HEADING,
-          body: (
-            <p className="text-[16px] mt-1">
-              Money in the bank covers{" "}
-              <span style={{ fontVariantNumeric: "tabular-nums" }}>
-                {formatINR(bank)}
-              </span>
-              . You will need about{" "}
-              <span style={{ fontVariantNumeric: "tabular-nums" }}>
-                {formatINR(verdict.fromGalla)}
-              </span>{" "}
-              from your Galla (drawer) to pay the wholesaler.
-            </p>
-          ),
+          heading: t("verdictYellowHeading"),
+          body:
+            language === "hi" ? (
+              <p className="text-[16px] mt-1">
+                बैंक का पैसा{" "}
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatINR(bank)}
+                </span>{" "}
+                कवर करता है। थोक व्यापारी को भुगतान के लिए आपको अपने गल्ले से लगभग{" "}
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatINR(verdict.fromGalla)}
+                </span>{" "}
+                की आवश्यकता होगी।
+              </p>
+            ) : language === "mr" ? (
+              <p className="text-[16px] mt-1">
+                बँकेतील पैसे{" "}
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatINR(bank)}
+                </span>{" "}
+                भागवतात. घाऊक व्यापाऱ्याला देण्यासाठी तुम्हाला गल्ल्यातून सुमारे{" "}
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatINR(verdict.fromGalla)}
+                </span>{" "}
+                ची गरज भासेल.
+              </p>
+            ) : (
+              <p className="text-[16px] mt-1">
+                Money in the bank covers{" "}
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatINR(bank)}
+                </span>
+                . You will need about{" "}
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatINR(verdict.fromGalla)}
+                </span>{" "}
+                from your Galla (drawer) to pay the wholesaler.
+              </p>
+            ),
         };
       case "red":
         return {
@@ -204,16 +238,33 @@ export default function RestockSimulator({
               style={{ flexShrink: 0, color: "#991B1B" }}
             />
           ),
-          heading: VERDICT_RED_HEADING,
-          body: (
-            <p className="text-[16px] mt-1">
-              Even with your drawer cash you may be{" "}
-              <span style={{ fontVariantNumeric: "tabular-nums" }}>
-                {formatINR(verdict.shortBy)}
-              </span>{" "}
-              short by {dueDateLabel}. Try a smaller order or a later date.
-            </p>
-          ),
+          heading: t("verdictRedHeading"),
+          body:
+            language === "hi" ? (
+              <p className="text-[16px] mt-1">
+                गल्ले की नकद मिलाकर भी {dueDateLabel} तक आपके पास{" "}
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatINR(verdict.shortBy)}
+                </span>{" "}
+                कम पड़ सकते हैं। छोटा ऑर्डर दें या बाद की तारीख चुनें।
+              </p>
+            ) : language === "mr" ? (
+              <p className="text-[16px] mt-1">
+                गल्ल्यातील रोख मिळवूनही {dueDateLabel} पर्यंत तुमच्याकडे{" "}
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatINR(verdict.shortBy)}
+                </span>{" "}
+                कमी पडू शकतात. लहान ऑर्डर द्या किंवा नंतरची तारीख निवडा.
+              </p>
+            ) : (
+              <p className="text-[16px] mt-1">
+                Even with your drawer cash you may be{" "}
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {formatINR(verdict.shortBy)}
+                </span>{" "}
+                short by {dueDateLabel}. Try a smaller order or a later date.
+              </p>
+            ),
         };
       default:
         return null;
@@ -233,7 +284,7 @@ export default function RestockSimulator({
     <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5">
       {/* Card heading */}
       <h2 className="text-[18px] font-semibold text-gray-900 pb-3 border-b border-gray-200">
-        {SIMULATOR_HEADING}
+        {t("simulatorHeading")}
       </h2>
 
       {/* Form fields */}
@@ -244,7 +295,7 @@ export default function RestockSimulator({
             htmlFor="order-amount"
             className="block text-[16px] text-gray-900 mb-1"
           >
-            {PAYMENT_LABEL}
+            {t("paymentLabel")}
           </label>
           <div
             className="flex items-center border border-gray-300 rounded-md"
@@ -265,7 +316,7 @@ export default function RestockSimulator({
               placeholder="2,50,000"
               className="flex-1 min-w-0 pr-3 text-[16px] text-gray-900 bg-transparent focus:outline-none focus:ring-0"
               style={{ fontVariantNumeric: "tabular-nums", border: "none" }}
-              aria-label={PAYMENT_LABEL}
+              aria-label={t("paymentLabel")}
             />
           </div>
         </div>
@@ -276,7 +327,7 @@ export default function RestockSimulator({
             htmlFor="due-date"
             className="block text-[16px] text-gray-900 mb-1"
           >
-            {DATE_LABEL}
+            {t("dateLabel")}
           </label>
           <input
             id="due-date"
@@ -308,7 +359,7 @@ export default function RestockSimulator({
               color: "#4B5563",
             }}
           >
-            <p className="text-[16px]">{VERDICT_IDLE_TEXT}</p>
+            <p className="text-[16px]">{t("verdictIdleText")}</p>
           </div>
         )}
 
@@ -347,14 +398,14 @@ export default function RestockSimulator({
             className="inline-flex items-center gap-2 h-11 px-4 rounded-md border border-[#DEDBD4] bg-[#FFFEFA] text-[#1B0D08] font-medium hover:bg-[#F6E8E0] focus:outline-none focus:ring-2 focus:ring-[#B65F3E] text-[15px]"
           >
             <Copy size={16} strokeWidth={1.75} aria-hidden="true" />
-            {COPY_WHATSAPP}
+            {t("copyWhatsApp")}
           </button>
           <p
             aria-live="polite"
             className="mt-1 text-[14px] text-[#716D67]"
             style={{ minHeight: "20px" }}
           >
-            {copied ? COPIED_NOTICE : ""}
+            {copied ? t("copiedNotice") : ""}
           </p>
         </div>
       )}
@@ -365,7 +416,7 @@ export default function RestockSimulator({
           {/* Bank row */}
           <div className="flex items-baseline justify-between gap-4">
             <span className="text-[14px] text-gray-600">
-              Money in bank after payments till {dueDateLabel}
+              {t("moneyInBankAfterPayments")} {dueDateLabel}
             </span>
             <span
               className="text-[16px] font-medium text-gray-900"
@@ -376,7 +427,7 @@ export default function RestockSimulator({
           </div>
           {/* Galla row */}
           <div className="flex items-baseline justify-between gap-4">
-            <span className="text-[14px] text-gray-600">Cash in drawer</span>
+            <span className="text-[14px] text-gray-600">{t("cashInDrawer")}</span>
             <span
               className="text-[16px] font-medium text-gray-900"
               style={{ fontVariantNumeric: "tabular-nums" }}
@@ -386,7 +437,7 @@ export default function RestockSimulator({
           </div>
           {/* Order row */}
           <div className="flex items-baseline justify-between gap-4">
-            <span className="text-[14px] text-gray-600">{PAYMENT_LABEL}</span>
+            <span className="text-[14px] text-gray-600">{t("paymentLabel")}</span>
             <span
               className="text-[16px] font-medium text-gray-900"
               style={{ fontVariantNumeric: "tabular-nums" }}
@@ -396,7 +447,7 @@ export default function RestockSimulator({
           </div>
           {/* Caption */}
           <p className="mt-1 text-[14px] text-gray-500">
-            Expected cash includes the money already in your drawer and a guess based on {cashOutOf10} out of 10 customers paying cash.
+            {t("expectedCashCaption")} {cashOutOf10} {t("expectedCashCaptionSuffix")}
           </p>
         </div>
       )}
@@ -407,6 +458,7 @@ export default function RestockSimulator({
           <AdvisorPanel
             shortfall={advisorShortfall}
             dueDate={dueDate}
+            language={language}
             context={{
               bankToday: shopInputs.bankBalance,
               drawerCash: shopInputs.drawerCash,
