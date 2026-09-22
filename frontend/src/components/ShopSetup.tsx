@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ShopInputs } from "../types";
 
 interface ShopSetupProps {
   onContinue: (inputs: ShopInputs) => void;
+  initialBankBalance?: number;
+  aaBadge?: React.ReactNode;
 }
 
 type AmountField = keyof ShopInputs;
@@ -38,19 +40,26 @@ function formatIndian(value: number): string {
   return value === 0 ? "" : new Intl.NumberFormat("en-IN").format(value);
 }
 
-export default function ShopSetup({ onContinue }: ShopSetupProps) {
+export default function ShopSetup({ onContinue, initialBankBalance, aaBadge }: ShopSetupProps) {
   const [values, setValues] = useState<ShopInputs>({
-    bankBalance: 0,
+    bankBalance: initialBankBalance ?? 0,
     drawerCash: 0,
     moneyGoingOut: 0,
     promisedPayments: 0,
   });
   const [rawValues, setRawValues] = useState<Record<AmountField, string>>({
-    bankBalance: "",
+    bankBalance: initialBankBalance ? formatIndian(initialBankBalance) : "",
     drawerCash: "",
     moneyGoingOut: "",
     promisedPayments: "",
   });
+
+  useEffect(() => {
+    if (initialBankBalance !== undefined && initialBankBalance !== null) {
+      setValues((current) => ({ ...current, bankBalance: initialBankBalance }));
+      setRawValues((current) => ({ ...current, bankBalance: formatIndian(initialBankBalance) }));
+    }
+  }, [initialBankBalance]);
 
   function updateField(key: AmountField, input: string) {
     const digits = input.replace(/\D/g, "").slice(0, 9);
@@ -90,6 +99,9 @@ export default function ShopSetup({ onContinue }: ShopSetupProps) {
               />
             </div>
             <p>{helper}</p>
+            {key === "bankBalance" && aaBadge && (
+              <div className="mt-1">{aaBadge}</div>
+            )}
           </div>
         ))}
         <button type="submit" className="primary-action shop-setup-submit">

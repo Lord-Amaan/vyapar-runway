@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
-import { ArrowDownRight, CalendarDays } from "lucide-react";
+import { ArrowDownRight, CalendarDays, Landmark } from "lucide-react";
 import {
   APP_TITLE,
   APP_SUBTITLE,
   BANK_SUM_LABEL,
   LOADING_TEXT,
   ERROR_TEXT,
+  AA_BUTTON_LABEL,
+  AA_CONNECTED_BADGE,
 } from "./copy";
 import { buildForecast } from "./lib/forecast";
 import { useUpiData } from "./hooks/useUpiData";
@@ -16,6 +18,7 @@ import RetailSummary from "./components/RetailSummary";
 import LandingPage from "./components/LandingPage";
 import ShopSetup from "./components/ShopSetup";
 import DataImport from "./components/DataImport";
+import AccountAggregatorModal from "./components/AccountAggregatorModal";
 import type { ShopInputs } from "./types";
 
 function Dashboard() {
@@ -32,6 +35,15 @@ function Dashboard() {
   } = useUpiData();
   const [cashOutOf10, setCashOutOf10] = useState(4);
   const [shopInputs, setShopInputs] = useState<ShopInputs | null>(null);
+  const [aaModalOpen, setAaModalOpen] = useState(false);
+  const [aaConnected, setAaConnected] = useState(false);
+  const [aaVerifiedBalance, setAaVerifiedBalance] = useState<number | null>(null);
+
+  function handleAaConnected(verifiedBalance: number) {
+    setAaVerifiedBalance(verifiedBalance);
+    setAaConnected(true);
+    setShopInputs((prev) => (prev ? { ...prev, bankBalance: verifiedBalance } : null));
+  }
 
   const total = days.reduce((sum, d) => sum + d.amount, 0);
 
@@ -42,6 +54,11 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen app-shell">
+      <AccountAggregatorModal
+        isOpen={aaModalOpen}
+        onClose={() => setAaModalOpen(false)}
+        onConnected={handleAaConnected}
+      />
       <header className="app-header border-b border-gray-200 px-4 py-4 sm:px-6">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -55,9 +72,33 @@ function Dashboard() {
               <p className="text-[13px] text-gray-500">{APP_SUBTITLE}</p>
             </div>
           </div>
-          <div className="hidden sm:flex items-center gap-2 text-[13px] text-gray-500">
-            <CalendarDays size={16} strokeWidth={1.75} aria-hidden="true" />
-            <span>30-day outlook</span>
+          <div className="flex items-center gap-3">
+            {aaConnected ? (
+              <span
+                className="hidden sm:inline-flex items-center text-xs font-medium px-2 py-1 rounded border"
+                style={{
+                  color: "#B65F3E",
+                  background: "#F6E8E0",
+                  borderColor: "#DEDBD4",
+                }}
+              >
+                {AA_CONNECTED_BADGE}
+              </span>
+            ) : (
+              <button
+                id="aa-header-link-btn"
+                type="button"
+                onClick={() => setAaModalOpen(true)}
+                className="hidden sm:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-[#DEDBD4] bg-[#FFFEFA] text-[#1B0D08] text-[13px] font-medium hover:bg-[#F6E8E0] focus:outline-none focus:ring-2 focus:ring-[#B65F3E]"
+              >
+                <Landmark size={14} strokeWidth={1.75} aria-hidden="true" />
+                {AA_BUTTON_LABEL}
+              </button>
+            )}
+            <div className="hidden sm:flex items-center gap-2 text-[13px] text-gray-500">
+              <CalendarDays size={16} strokeWidth={1.75} aria-hidden="true" />
+              <span>30-day outlook</span>
+            </div>
           </div>
         </div>
       </header>
@@ -91,7 +132,38 @@ function Dashboard() {
               error={uploadError}
             />
           ) : shopInputs === null ? (
-            <ShopSetup onContinue={setShopInputs} />
+            <>
+              <div className="mb-3 flex items-center justify-between">
+                <span />
+                <button
+                  id="aa-link-bank-btn"
+                  type="button"
+                  onClick={() => setAaModalOpen(true)}
+                  className="inline-flex items-center gap-2 h-9 px-3 rounded-md border border-[#DEDBD4] bg-[#FFFEFA] text-[#1B0D08] text-[14px] font-medium hover:bg-[#F6E8E0] focus:outline-none focus:ring-2 focus:ring-[#B65F3E]"
+                >
+                  <Landmark size={15} strokeWidth={1.75} aria-hidden="true" />
+                  {AA_BUTTON_LABEL}
+                </button>
+              </div>
+              <ShopSetup
+                onContinue={setShopInputs}
+                initialBankBalance={aaVerifiedBalance ?? undefined}
+                aaBadge={
+                  aaConnected ? (
+                    <span
+                      className="inline-flex items-center text-xs font-medium px-2 py-1 rounded border"
+                      style={{
+                        color: "#B65F3E",
+                        background: "#F6E8E0",
+                        borderColor: "#DEDBD4",
+                      }}
+                    >
+                      {AA_CONNECTED_BADGE}
+                    </span>
+                  ) : undefined
+                }
+              />
+            </>
           ) : (
             <>
             {modelWarning && <p className="forecast-warning" role="status">{modelWarning}</p>}

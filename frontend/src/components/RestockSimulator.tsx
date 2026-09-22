@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { CircleCheck, TriangleAlert, CircleX } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { CircleCheck, TriangleAlert, CircleX, Copy } from "lucide-react";
 import type { ForecastDay, ShopInputs } from "../types";
 import { totalsUntil, getVerdict } from "../lib/forecast";
 import { formatINR, formatShortDate } from "../lib/format";
@@ -12,6 +12,8 @@ import {
   VERDICT_GREEN_TEXT,
   VERDICT_YELLOW_HEADING,
   VERDICT_RED_HEADING,
+  COPY_WHATSAPP,
+  COPIED_NOTICE,
 } from "../copy";
 import AdvisorPanel from "./AdvisorPanel";
 
@@ -55,6 +57,8 @@ export default function RestockSimulator({
   const [orderAmount, setOrderAmount] = useState<number>(prefillAmount);
   const [rawInput, setRawInput] = useState<string>(formatIndian(prefillAmount));
   const [dueDate, setDueDate] = useState<string>(prefillDate);
+  const [copied, setCopied] = useState(false);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Validate date
   const dateValid =
@@ -87,6 +91,48 @@ export default function RestockSimulator({
     setOrderAmount(num);
     setRawInput(digits === "" ? "" : formatIndian(num));
   }
+
+  function buildVerdictExplanation(): string {
+    switch (verdict.level) {
+      case "green":
+        return VERDICT_GREEN_TEXT;
+      case "yellow":
+        return `Money in the bank covers \u20B9${formatIndian(bank)}. You will need about \u20B9${formatIndian(verdict.fromGalla)} from your cash drawer to pay the wholesaler.`;
+      case "red":
+        return `Even with your drawer cash you may be \u20B9${formatIndian(verdict.shortBy)} short by ${dueDateLabel}. Try a smaller order or a later date.`;
+      default:
+        return "";
+    }
+  }
+
+  function handleCopyWhatsApp() {
+    if (config === null || verdict.level === "idle") return;
+    const currentDate = new Date().toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    const text = [
+      `VyaparRunway Check — ${currentDate}`,
+      `Wholesaler Order: \u20B9${formatIndian(orderAmount)} (Due: ${dueDateLabel})`,
+      `Bank Balance (UPI) Expected: \u20B9${formatIndian(bank)}`,
+      `Galla Cash Buffer (Estimated): \u20B9${formatIndian(galla)}`,
+      "",
+      `Verdict: ${config.heading} — ${buildVerdictExplanation()}`,
+    ].join("\n");
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), 3000);
+    });
+  }
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
 
   // --- Verdict UI config ---
   type VerdictConfig = {
@@ -290,6 +336,28 @@ export default function RestockSimulator({
           </div>
         )}
       </div>
+
+      {/* WhatsApp summary button — shown for any non-idle verdict */}
+      {config !== null && (
+        <div className="mt-3">
+          <button
+            id="copy-whatsapp-btn"
+            type="button"
+            onClick={handleCopyWhatsApp}
+            className="inline-flex items-center gap-2 h-11 px-4 rounded-md border border-[#DEDBD4] bg-[#FFFEFA] text-[#1B0D08] font-medium hover:bg-[#F6E8E0] focus:outline-none focus:ring-2 focus:ring-[#B65F3E] text-[15px]"
+          >
+            <Copy size={16} strokeWidth={1.75} aria-hidden="true" />
+            {COPY_WHATSAPP}
+          </button>
+          <p
+            aria-live="polite"
+            className="mt-1 text-[14px] text-[#716D67]"
+            style={{ minHeight: "20px" }}
+          >
+            {copied ? COPIED_NOTICE : ""}
+          </p>
+        </div>
+      )}
 
       {/* Breakdown rows — shown for any non-idle verdict */}
       {showBreakdown && (

@@ -42,3 +42,11 @@ export const ADVISOR_LOADING = "Getting ideas…";
 export const ADVISOR_ERROR =
   "Could not get ideas. Check that the backend is running.";
 export const ADVISOR_NOTE = "Ideas to try. You know your shop best.";
+
+// WhatsApp Summary
+export const COPY_WHATSAPP = "Copy WhatsApp Summary";
+export const COPIED_NOTICE = "Copied summary to clipboard";
+
+// Account Aggregator
+export const AA_BUTTON_LABEL = "Link Bank via AA (Demo)";
+export const AA_CONNECTED_BADGE = "Verified via Account Aggregator (Demo · SBI)";

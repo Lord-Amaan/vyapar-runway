@@ -1,0 +1,4 @@
+id,customer_name,payment_mode
+1,Ramesh,Cash
+2,Suresh,UPI
+3,Deepak,Card
