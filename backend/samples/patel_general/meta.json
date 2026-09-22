@@ -1,0 +1,30 @@
+{
+  "name": "Patel General Store",
+  "as_of": "2026-09-22",
+  "category": "gifts_puja",
+  "bank0": 120000,
+  "drawer0": 25000,
+  "obligations": [
+    {
+      "label": "Rent",
+      "amount": 12000,
+      "date": "2025-11-01",
+      "repeat": "monthly"
+    },
+    {
+      "label": "Salary",
+      "amount": 8000,
+      "date": "2025-11-05",
+      "repeat": "monthly"
+    },
+    {
+      "label": "Electricity",
+      "amount": 2500,
+      "date": "2025-11-10",
+      "repeat": "monthly"
+    }
+  ],
+  "floor": 25000,
+  "festival_id": "diwali",
+  "festival_date": "2026-11-08"
+}

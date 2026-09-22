@@ -1,0 +1,98 @@
+/* SightBar — the signature element */
+
+.sight-bar-container {
+  margin: 1rem 0 1.5rem;
+}
+
+.sight-bar-label-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.sight-bar-title {
+  font-size: 0.75rem;
+  color: rgba(245, 230, 211, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sight-bar {
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  position: relative;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(196, 133, 72, 0.1);
+}
+
+.sight-zone {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: width 250ms ease;
+  position: relative;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sight-zone { transition: none; }
+}
+
+.sight-zone.seen {
+  background: linear-gradient(90deg, #C48548, #D4965A);
+}
+
+.sight-zone.maybe {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(232, 169, 81, 0.35),
+    rgba(232, 169, 81, 0.35) 4px,
+    rgba(232, 169, 81, 0.15) 4px,
+    rgba(232, 169, 81, 0.15) 8px
+  );
+}
+
+.sight-zone.cash {
+  background: rgba(232, 169, 81, 0.12);
+}
+
+.zone-inner-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1a0f0a;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.sight-bar-legend {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: rgba(245, 230, 211, 0.6);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.seen-swatch { background: #C48548; }
+.maybe-swatch {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(232, 169, 81, 0.5),
+    rgba(232, 169, 81, 0.5) 2px,
+    rgba(232, 169, 81, 0.2) 2px,
+    rgba(232, 169, 81, 0.2) 4px
+  );
+}
+.cash-swatch { background: rgba(232, 169, 81, 0.2); border: 1px solid rgba(232, 169, 81, 0.4); }

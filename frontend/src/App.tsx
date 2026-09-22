@@ -16,6 +16,8 @@ import RetailSummary from "./components/RetailSummary";
 import LandingPage from "./components/LandingPage";
 import ShopSetup from "./components/ShopSetup";
 import DataImport from "./components/DataImport";
+import AppFlow from "./components/AppFlow";
+import Proof from "./pages/Proof";
 import type { ShopInputs } from "./types";
 
 function Dashboard() {
@@ -141,5 +143,9 @@ function Dashboard() {
 }
 
 export default function App() {
-  return window.location.pathname.startsWith("/app") ? <Dashboard /> : <LandingPage />;
+  const path = window.location.pathname;
+  if (path.startsWith("/proof")) return <Proof />;
+  if (path.startsWith("/app")) return <AppFlow />;
+  return <LandingPage />;
 }
+

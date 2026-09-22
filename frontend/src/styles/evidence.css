@@ -1,0 +1,72 @@
+/* Evidence stack — horizontal range bars */
+
+.evidence-stack {
+  margin: 0.75rem 0;
+}
+
+.evidence-axis {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: rgba(245, 230, 211, 0.4);
+  margin-bottom: 0.5rem;
+  padding: 0 0.5rem;
+}
+
+.evidence-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+
+.evidence-label {
+  font-size: 0.8rem;
+  color: rgba(245, 230, 211, 0.7);
+  min-width: 160px;
+  text-align: right;
+}
+
+.evidence-bar-track {
+  flex: 1;
+  height: 14px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 7px;
+  position: relative;
+  overflow: hidden;
+}
+
+.evidence-bar {
+  position: absolute;
+  top: 1px;
+  height: 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.evidence-bar.strong {
+  background: linear-gradient(90deg, rgba(196, 133, 72, 0.7), rgba(196, 133, 72, 0.5));
+}
+
+.evidence-bar.weak {
+  background: none;
+  border: 1.5px dashed rgba(196, 133, 72, 0.5);
+}
+
+.evidence-bar.prior {
+  background: rgba(245, 230, 211, 0.1);
+  border: 1px solid rgba(245, 230, 211, 0.15);
+}
+
+.evidence-skipped {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: rgba(245, 230, 211, 0.45);
+}
+
+.evidence-skipped strong {
+  color: rgba(245, 230, 211, 0.6);
+}

@@ -1,0 +1,7 @@
+{
+  "kirana": {"id": "kirana", "label": "Kirana / grocery", "m_lo": 0.08, "m_hi": 0.18},
+  "sweets_dryfruit": {"id": "sweets_dryfruit", "label": "Sweets & dry fruits", "m_lo": 0.15, "m_hi": 0.30},
+  "garments": {"id": "garments", "label": "Garments", "m_lo": 0.25, "m_hi": 0.45},
+  "gifts_puja": {"id": "gifts_puja", "label": "Gifts & puja items", "m_lo": 0.15, "m_hi": 0.30},
+  "other": {"id": "other", "label": "Other", "m_lo": 0.10, "m_hi": 0.30}
+}

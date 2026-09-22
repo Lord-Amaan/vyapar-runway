@@ -1,0 +1,39 @@
+{
+  "prior_alpha": 2,
+  "prior_beta": 2,
+  "grid_size": 400,
+  "grid_lo": 0.05,
+  "grid_hi": 0.99,
+  "e1_tau": 0.03,
+  "e2_sigma_inv": 0.15,
+  "e3_sigma": 0.10,
+  "e4_sigma": 0.15,
+  "daily_cash_sigma": 0.10,
+  "level_day_split": [0.6, 0.8],
+  "tier2_sigma_bounds": [0.15, 0.45],
+  "uplift_sigma_data": 0.20,
+  "uplift_sigma_owner": 0.30,
+  "uplift_sigma_tier3": 0.35,
+  "verdict_safe_threshold": 80,
+  "verdict_risky_threshold": 50,
+  "plan_p_threshold": 0.80,
+  "monte_carlo_n": 2000,
+  "settlement_lag_days": 0,
+  "digital_share_options": {
+    "almost_all": {"q": 0.9, "sigma": 0.08},
+    "most": {"q": 0.7, "sigma": 0.15},
+    "half": {"q": 0.5, "sigma": 0.25}
+  },
+  "confidence_thresholds": {
+    "narrow": 0.12,
+    "wide": 0.25
+  },
+  "breakeven_tolerance": 10,
+  "breakeven_max_iter": 40,
+  "plan_tolerance": 100,
+  "session_ttl_seconds": 7200,
+  "max_cash_counts": 14,
+  "max_obligations": 30,
+  "max_file_bytes": 5242880,
+  "max_file_rows": 50000
+}

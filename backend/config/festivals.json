@@ -1,0 +1,36 @@
+[
+  {
+    "id": "diwali",
+    "name": "Diwali",
+    "regions": ["all"],
+    "dates": {
+      "2023": "2023-11-12",
+      "2024": "2024-11-01",
+      "2025": "2025-10-20",
+      "2026": "2026-11-08"
+    },
+    "categories": ["kirana", "sweets_dryfruit", "garments", "gifts_puja", "other"]
+  },
+  {
+    "id": "navratri_dussehra",
+    "name": "Navratri–Dussehra",
+    "regions": ["all"],
+    "dates": {
+      "2024": "2024-10-12",
+      "2025": "2025-10-02",
+      "2026": "2026-10-20"
+    },
+    "categories": ["garments", "gifts_puja", "other"]
+  },
+  {
+    "id": "ganesh_chaturthi",
+    "name": "Ganesh Chaturthi",
+    "regions": ["maharashtra", "karnataka", "goa"],
+    "dates": {
+      "2024": "2024-09-07",
+      "2025": "2025-08-27",
+      "2026": "2026-09-14"
+    },
+    "categories": ["sweets_dryfruit", "gifts_puja", "other"]
+  }
+]

@@ -1,0 +1,159 @@
+/* Verdict card + scenarios + break-even gauge */
+
+.verdict-section {
+  margin: 1.5rem 0;
+}
+
+.verdict-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 14px;
+  margin-bottom: 1rem;
+  border: 1px solid;
+}
+
+.verdict-safe {
+  background: rgba(72, 187, 120, 0.08);
+  border-color: rgba(72, 187, 120, 0.25);
+}
+
+.verdict-risky {
+  background: rgba(232, 169, 81, 0.08);
+  border-color: rgba(232, 169, 81, 0.25);
+}
+
+.verdict-short {
+  background: rgba(229, 62, 62, 0.08);
+  border-color: rgba(229, 62, 62, 0.25);
+}
+
+.verdict-icon { font-size: 2rem; }
+
+.verdict-content { flex: 1; }
+
+.verdict-headline {
+  font-size: 1rem;
+  line-height: 1.4;
+  margin-bottom: 0.3rem;
+}
+
+.verdict-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.verdict-safe .verdict-label { color: #48BB78; }
+.verdict-risky .verdict-label { color: #E8A951; }
+.verdict-short .verdict-label { color: #FC8181; }
+
+.verdict-n {
+  font-size: 2.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.verdict-safe .verdict-n { color: #48BB78; }
+.verdict-risky .verdict-n { color: #E8A951; }
+.verdict-short .verdict-n { color: #FC8181; }
+
+.verdict-n-label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 400;
+  opacity: 0.7;
+  text-align: center;
+}
+
+/* Scenarios */
+.scenarios {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.scenario-chip {
+  flex: 1;
+  padding: 0.75rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(196, 133, 72, 0.12);
+  border-radius: 10px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scenario-chip.active {
+  background: rgba(196, 133, 72, 0.08);
+  border-color: rgba(196, 133, 72, 0.25);
+}
+
+.scenario-n {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #C48548;
+}
+
+/* Break-even gauge */
+.break-even-card {
+  padding: 1.25rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(196, 133, 72, 0.12);
+  border-radius: 12px;
+}
+
+.break-even-card p {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
+}
+
+.gauge-track {
+  height: 10px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 5px;
+  position: relative;
+  margin: 0.75rem 0;
+}
+
+.gauge-range {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: rgba(196, 133, 72, 0.35);
+  border-radius: 5px;
+}
+
+.gauge-marker {
+  position: absolute;
+  top: -4px;
+  width: 3px;
+  height: 18px;
+  background: #E8A951;
+  border-radius: 2px;
+  transform: translateX(-50%);
+}
+
+.gauge-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: rgba(245, 230, 211, 0.5);
+}
+
+.gauge-cstar {
+  color: #E8A951;
+  font-weight: 600;
+}
+
+.breakeven-ask {
+  color: rgba(245, 230, 211, 0.6);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+.text-danger { color: #FC8181; }

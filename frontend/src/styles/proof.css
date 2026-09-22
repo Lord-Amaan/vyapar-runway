@@ -1,0 +1,102 @@
+/* Proof page */
+.proof-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a0f0a 0%, #2C1810 50%, #1a0f0a 100%);
+  color: #F5E6D3;
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: 'Inter', 'Noto Sans Devanagari', sans-serif;
+}
+
+.proof-page h1 {
+  font-size: 1.5rem;
+  color: #C48548;
+  margin-bottom: 1.5rem;
+}
+
+.caveat-block {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: rgba(232, 169, 81, 0.08);
+  border: 1px solid rgba(232, 169, 81, 0.25);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.caveat-icon { font-size: 1.5rem; }
+.caveat-block p { font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.3rem; }
+.caveat-block p:last-child { color: rgba(245, 230, 211, 0.6); }
+
+.proof-meta {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.8rem;
+  color: rgba(245, 230, 211, 0.45);
+  margin-bottom: 2rem;
+}
+
+.proof-chart-section {
+  margin-bottom: 2.5rem;
+}
+
+.proof-chart-section h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.3rem;
+}
+
+.chart-desc {
+  font-size: 0.8rem;
+  color: rgba(245, 230, 211, 0.5);
+  margin-bottom: 1rem;
+}
+
+.coverage-table table {
+  width: 100%;
+  max-width: 400px;
+  border-collapse: collapse;
+}
+
+.coverage-table th, .coverage-table td {
+  padding: 0.6rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(196, 133, 72, 0.12);
+  font-size: 0.85rem;
+}
+
+.coverage-table th {
+  color: rgba(245, 230, 211, 0.5);
+  font-weight: 500;
+}
+
+.proof-footer {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: rgba(245, 230, 211, 0.5);
+  line-height: 1.5;
+}
+
+.proof-loading {
+  text-align: center;
+  padding: 4rem;
+  color: rgba(245, 230, 211, 0.5);
+}
+
+.proof-error {
+  padding: 1.5rem;
+  background: rgba(229, 62, 62, 0.08);
+  border: 1px solid rgba(229, 62, 62, 0.25);
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+
+.proof-error code {
+  background: rgba(255,255,255,0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}

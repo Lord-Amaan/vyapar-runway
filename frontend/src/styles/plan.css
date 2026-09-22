@@ -1,0 +1,54 @@
+/* Plan timeline */
+.plan-timeline { margin: 1rem 0; }
+
+.timeline-track {
+  display: flex;
+  gap: 1rem;
+  position: relative;
+}
+
+.timeline-track::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(196, 133, 72, 0.2);
+  z-index: 0;
+}
+
+.tranche-card {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(196, 133, 72, 0.2);
+  border-radius: 14px;
+  padding: 1.25rem;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  transition: all 0.2s;
+}
+
+.tranche-card:hover {
+  border-color: #C48548;
+  background: rgba(196, 133, 72, 0.08);
+}
+
+.tranche-num {
+  font-size: 0.7rem;
+  color: rgba(245, 230, 211, 0.4);
+  margin-bottom: 0.5rem;
+}
+
+.tranche-amount {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #C48548;
+  margin-bottom: 0.3rem;
+}
+
+.tranche-date {
+  font-size: 0.8rem;
+  color: rgba(245, 230, 211, 0.6);
+}
