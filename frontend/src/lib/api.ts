@@ -10,6 +10,8 @@ export interface AdvisorContext {
   orderAmount: number;
 }
 
+export type AdvisorLanguage = "en" | "hi" | "mr";
+
 /**
  * POST to /api/advisor and validate the response is exactly 3 non-empty strings.
  * Throws on network error, non-ok status, or bad payload shape.
@@ -18,12 +20,14 @@ export async function fetchAdvice(
   shortfall: number,
   dueDate: string,
   context: AdvisorContext,
+  language: AdvisorLanguage,
   signal: AbortSignal,
+  question = "",
 ): Promise<[string, string, string]> {
   const res = await fetch(`${API_URL}/api/advisor`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ shortfall, dueDate, ...context }),
+    body: JSON.stringify({ shortfall, dueDate, language, question, ...context }),
     signal,
   });
 

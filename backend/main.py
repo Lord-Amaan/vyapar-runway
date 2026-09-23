@@ -5,6 +5,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from datetime import date
+from typing import Literal
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Request, UploadFile
@@ -134,19 +135,18 @@ async def simulate_endpoint(req: SimulateRequest) -> dict:
 
 # ── advisor ────────────────────────────────────────────────────────
 
-_FALLBACK_IDEAS: list[str] = [
-    "Run a pre-booking offer. Message regular customers on WhatsApp and take advance payment for festival stock.",
-    "Clear old stock. Put slow items on a short discount sale to turn them into cash this week.",
-    "Ask your wholesaler for 7 extra days, or offer a post-dated cheque for part of the payment.",
-]
-
 _ADVISOR_PROMPT_TEMPLATE = (
     "You are a helpful retail advisor for an Indian shopkeeper. "
+    "Write every answer in {language_name}; do not use English unless the requested language is English. "
+    "The shopkeeper's spoken question is: {question} "
+    "Answer that question directly while still using the financial context below. "
     "The shopkeeper is short by ₹{amount} to pay a wholesaler on {due_date}. "
     "Their shop picture is: ₹{bank_today} in the bank today, ₹{drawer_cash} in the drawer today, "
     "₹{expected_upi} expected from UPI, ₹{expected_cash} expected from cash sales, "
     "₹{money_going_out} going out, and ₹{promised_payments} already owed. "
     "The planned order is ₹{order_amount}. "
+    "Use these exact numbers and prioritize the biggest constraint in the shop's data. "
+    "Do not repeat generic advice: make each idea different and specific to this situation. "
     "Give exactly 3 short, practical ideas to raise this cash within a week. "
     "Use local options such as a clearance sale on slow stock, WhatsApp pre-booking with regular customers, "
     "or asking the wholesaler for a few extra days or a post-dated cheque. "
@@ -167,6 +167,8 @@ class AdvisorRequest(BaseModel):
     moneyGoingOut: int = 0
     promisedPayments: int = 0
     orderAmount: int = 0
+    language: Literal["en", "hi", "mr"] = "en"
+    question: str = ""
 
     @field_validator("shortfall")
     @classmethod
@@ -199,6 +201,11 @@ class AdvisorRequest(BaseModel):
             raise ValueError("dueDate must be a valid ISO date (YYYY-MM-DD)") from exc
         return v
 
+    @field_validator("question")
+    @classmethod
+    def question_length(cls, v: str) -> str:
+        return v.strip()[:500]
+
 
 def _format_indian(n: int) -> str:
     """Format integer with Indian grouping: 250000 → '2,50,000'."""
@@ -220,6 +227,33 @@ def _format_due_date(iso: str) -> str:
     return f"{d.day} {d.strftime('%b %Y')}"
 
 
+def _fallback_ideas(req: AdvisorRequest) -> list[str]:
+    """Keep offline advice localized and tied to the current shop numbers."""
+    amount = _format_indian(req.shortfall)
+    order = _format_indian(req.orderAmount)
+    due_date = _format_due_date(req.dueDate)
+    cash_gap = max(0, req.orderAmount - req.bankToday - req.expectedUpi)
+    cash_gap_str = _format_indian(cash_gap)
+
+    if req.language == "hi":
+        return [
+            f"{due_date} तक ₹{amount} की कमी है; ग्राहक को पहले बुकिंग भेजकर अग्रिम भुगतान लें।",
+            f"बैंक और UPI से ₹{cash_gap_str} कम पड़ रहे हैं; धीमा स्टॉक बेचकर यह हिस्सा जुटाएं।",
+            f"₹{order} के ऑर्डर पर सप्लायर से {due_date} के बाद 7 दिन की मोहलत मांगें।",
+        ]
+    if req.language == "mr":
+        return [
+            f"{due_date} पर्यंत ₹{amount} कमी आहे; नियमित ग्राहकांकडून आधी बुकिंग आणि आगाऊ पैसे घ्या.",
+            f"बँक आणि UPI मधून ₹{cash_gap_str} कमी पडत आहेत; हळू विकला जाणारा माल विकून रक्कम उभी करा.",
+            f"₹{order} च्या ऑर्डरसाठी पुरवठादाराकडून {due_date} नंतर 7 दिवसांची मुदत मागा.",
+        ]
+    return [
+        f"You are ₹{amount} short by {due_date}; message regular customers for advance bookings today.",
+        f"Bank and UPI leave a ₹{cash_gap_str} gap; clear slow stock to raise that amount.",
+        f"For the ₹{order} order, ask your supplier for 7 extra days after {due_date}.",
+    ]
+
+
 @app.post("/api/advisor")
 async def advisor(req: AdvisorRequest) -> list[str]:
     load_dotenv(override=True)
@@ -228,7 +262,7 @@ async def advisor(req: AdvisorRequest) -> list[str]:
 
     if not api_key:
         logger.info("advisor: fallback (no GEMINI_API_KEY)")
-        return _FALLBACK_IDEAS
+        return _fallback_ideas(req)
 
     try:
         from google import genai
@@ -236,12 +270,14 @@ async def advisor(req: AdvisorRequest) -> list[str]:
 
         client = genai.Client(
             api_key=api_key,
-            http_options=genai_types.HttpOptions(timeout=10),
+            http_options=genai_types.HttpOptions(timeout=15000),
         )
 
         amount_str = _format_indian(req.shortfall)
         due_date_str = _format_due_date(req.dueDate)
         prompt = _ADVISOR_PROMPT_TEMPLATE.format(
+            language_name={"en": "English", "hi": "Hindi", "mr": "Marathi"}[req.language],
+            question=req.question or "No specific question; explain the best ways to increase cash flow.",
             amount=amount_str,
             due_date=due_date_str,
             bank_today=_format_indian(req.bankToday),
@@ -280,7 +316,7 @@ async def advisor(req: AdvisorRequest) -> list[str]:
     except Exception as exc:  # noqa: BLE001
         reason = type(exc).__name__
         logger.warning("advisor: fallback (%s: %s)", reason, exc)
-        return _FALLBACK_IDEAS
+        return _fallback_ideas(req)
 
 
 # ── error handlers (kept from Prompt 1) ────────────────────────────

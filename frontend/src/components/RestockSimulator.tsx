@@ -4,20 +4,10 @@ import {
   TriangleAlert,
   CircleX,
   Copy,
-  MessageCircle,
-  QrCode,
 } from "lucide-react";
 import type { ForecastDay, ShopInputs } from "../types";
 import { totalsUntil, getVerdict } from "../lib/forecast";
 import { formatINR, formatShortDate } from "../lib/format";
-import {
-  PAY_SUPPLIER_UPI,
-  SUPPLIER_NAME_LABEL,
-  SUPPLIER_PHONE_LABEL,
-  SUPPLIER_VPA_LABEL,
-  UPI_HINT,
-  WHATSAPP_SUPPLIER_BTN,
-} from "../copy";
 import { translate, type Language } from "../i18n";
 import AdvisorPanel from "./AdvisorPanel";
 import ModelInspectionModal from "./ModelInspectionModal";
@@ -66,11 +56,7 @@ export default function RestockSimulator({
   const [orderAmount, setOrderAmount] = useState<number>(prefillAmount);
   const [rawInput, setRawInput] = useState<string>(formatIndian(prefillAmount));
   const [dueDate, setDueDate] = useState<string>(prefillDate);
-  const [supplierName, setSupplierName] = useState("");
-  const [supplierPhone, setSupplierPhone] = useState("");
-  const [supplierVpa, setSupplierVpa] = useState("");
   const [copied, setCopied] = useState(false);
-  const [upiLinkCopied, setUpiLinkCopied] = useState(false);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [simResult, setSimResult] = useState<SimulationResult | null>(null);
@@ -158,41 +144,6 @@ export default function RestockSimulator({
     const num = digits === "" ? 0 : parseInt(digits, 10);
     setOrderAmount(num);
     setRawInput(digits === "" ? "" : formatIndian(num));
-  }
-
-  function handleSupplierPhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setSupplierPhone(e.target.value.replace(/\D/g, "").slice(0, 10));
-  }
-
-  const isValidVpa = /^[^\s@]+@[^\s@]+$/.test(supplierVpa.trim());
-
-  function buildUpiIntentUri(): string {
-    const vpa = supplierVpa.trim();
-    return `upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(supplierName.trim() || "Supplier")}&am=${orderAmount}&cu=INR&tn=${encodeURIComponent("VyaparRunway Stock Advance")}`;
-  }
-
-  function handlePaySupplierUpi() {
-    window.location.href = buildUpiIntentUri();
-  }
-
-  function handleCopyUpiLink() {
-    navigator.clipboard.writeText(buildUpiIntentUri()).then(() => {
-      setUpiLinkCopied(true);
-    });
-  }
-
-  function handleSendSupplierOrder() {
-    const message = [
-      `Namaste ${supplierName.trim() || "Wholesaler"},`,
-      "Order confirmation from VyaparRunway:",
-      `- Purchase Amount: ₹${formatIndian(orderAmount)}`,
-      `- Promised Payment Date: ${dueDateLabel}`,
-      "Please reserve inventory. Payment will be cleared as agreed.",
-    ].join("\n");
-    const cleanPhone = supplierPhone.replace(/\D/g, "");
-    const phonePath = cleanPhone ? cleanPhone : "";
-    const url = `https://wa.me/${phonePath}?text=${encodeURIComponent(message)}`;
-    window.open(url, "_blank");
   }
 
   function buildVerdictExplanation(): string {
@@ -379,10 +330,7 @@ export default function RestockSimulator({
 
   const config = buildVerdictConfig();
 
-  const showBreakdown = verdict.level !== "idle" && config !== null;
   const showAdvisor = verdict.level === "yellow" || verdict.level === "red";
-
-  // shortfall passed to advisor: fromGalla for yellow, shortBy for red
   const advisorShortfall =
     verdict.level === "red" ? verdict.shortBy : verdict.fromGalla;
 
@@ -453,68 +401,6 @@ export default function RestockSimulator({
           )}
         </div>
 
-        {/* Field 3: Supplier name */}
-        <div>
-          <label
-            htmlFor="supplier-name"
-            className="block text-[16px] text-[#1B0D08] mb-1"
-          >
-            {SUPPLIER_NAME_LABEL}
-          </label>
-          <input
-            id="supplier-name"
-            type="text"
-            value={supplierName}
-            onChange={(e) => setSupplierName(e.target.value)}
-            placeholder="e.g. Sharma Wholesale"
-            className="h-11 w-full border border-[#DEDBD4] bg-[#FFFEFA] text-[#1B0D08] px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[#B65F3E] text-[16px]"
-          />
-        </div>
-
-        {/* Field 4: Supplier WhatsApp */}
-        <div>
-          <label
-            htmlFor="supplier-phone"
-            className="block text-[16px] text-[#1B0D08] mb-1"
-          >
-            {SUPPLIER_PHONE_LABEL}
-          </label>
-          <input
-            id="supplier-phone"
-            type="tel"
-            inputMode="numeric"
-            maxLength={10}
-            value={supplierPhone}
-            onChange={handleSupplierPhoneChange}
-            placeholder="9876543210"
-            className="h-11 w-full border border-[#DEDBD4] bg-[#FFFEFA] text-[#1B0D08] px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[#B65F3E] text-[16px]"
-          />
-        </div>
-
-        {/* Field 5: Supplier VPA */}
-        <div>
-          <label
-            htmlFor="supplier-vpa"
-            className="block text-[16px] text-[#1B0D08] mb-1"
-          >
-            {SUPPLIER_VPA_LABEL}
-          </label>
-          <input
-            id="supplier-vpa"
-            type="text"
-            value={supplierVpa}
-            onChange={(e) => {
-              setSupplierVpa(e.target.value);
-              setUpiLinkCopied(false);
-            }}
-            placeholder="e.g. sharmawholesale@okicici"
-            className="h-11 w-full border border-[#DEDBD4] bg-[#FFFEFA] text-[#1B0D08] px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[#B65F3E] text-[16px]"
-            aria-describedby="supplier-vpa-hint"
-          />
-          <p id="supplier-vpa-hint" className="mt-1 text-xs text-[#716D67]">
-            {UPI_HINT}
-          </p>
-        </div>
       </div>
 
       {/* Verdict card */}
@@ -554,40 +440,13 @@ export default function RestockSimulator({
             {/* Body text */}
             {config.body}
 
-            {isValidVpa && (verdict.level === "green" || verdict.level === "yellow") && (
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <button
-                  id="pay-supplier-upi-btn"
-                  type="button"
-                  onClick={handlePaySupplierUpi}
-                  className="inline-flex items-center gap-2 h-11 px-4 rounded-md bg-[#190B05] text-[#FAF9F6] font-medium hover:bg-[#B65F3E] focus:outline-none focus:ring-2 focus:ring-[#B65F3E] text-[15px]"
-                >
-                  <QrCode size={18} strokeWidth={1.75} aria-hidden="true" />
-                  {PAY_SUPPLIER_UPI}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCopyUpiLink}
-                  className="inline-flex items-center gap-2 h-11 px-4 rounded-md border border-[#DEDBD4] bg-[#FFFEFA] text-[#1B0D08] font-medium hover:bg-[#F6E8E0] focus:outline-none focus:ring-2 focus:ring-[#B65F3E] text-[15px]"
-                >
-                  <Copy size={16} strokeWidth={1.75} aria-hidden="true" />
-                  Copy UPI Link
-                </button>
-                {upiLinkCopied && (
-                  <span className="text-xs text-[#716D67]" aria-live="polite">
-                    UPI link copied
-                  </span>
-                )}
-              </div>
-            )}
-
             {/* Humanized Simulation Badge & Drawer Trigger */}
             {simResult && (
               <div className="mt-3 pt-3 border-t border-black/10 flex flex-wrap items-center justify-between gap-2 text-xs">
                 <div className="flex items-center gap-1.5 font-medium">
                   <span className="inline-block w-2 h-2 rounded-full bg-current opacity-80" />
                   <span>
-                    {simResult.safetyConfidencePct}% of 2,000 simulated futures stayed cash-positive
+                    {simResult.safetyConfidencePct}% {t("simulationConfidence")}
                   </span>
                 </div>
                 <button
@@ -595,28 +454,13 @@ export default function RestockSimulator({
                   onClick={() => setModelModalOpen(true)}
                   className="font-medium underline underline-offset-2 hover:opacity-80 transition-opacity focus:outline-none cursor-pointer"
                 >
-                  See how we tested this &rarr;
+                  {t("seeHowTested")}
                 </button>
               </div>
             )}
           </div>
         )}
       </div>
-
-      {/* Direct supplier reorder action */}
-      {orderAmount > 0 && dueDate.length > 0 && (
-        <div className="mt-3">
-          <button
-            id="send-supplier-whatsapp-btn"
-            type="button"
-            onClick={handleSendSupplierOrder}
-            className="inline-flex items-center gap-2 h-11 px-4 rounded-md border border-[#DEDBD4] bg-[#FFFEFA] text-[#1B0D08] font-medium hover:bg-[#F6E8E0] focus:outline-none focus:ring-2 focus:ring-[#B65F3E] text-[15px]"
-          >
-            <MessageCircle size={16} strokeWidth={1.75} aria-hidden="true" />
-            {WHATSAPP_SUPPLIER_BTN}
-          </button>
-        </div>
-      )}
 
       {/* WhatsApp summary button — shown for any non-idle verdict */}
       {config !== null && (
@@ -640,49 +484,7 @@ export default function RestockSimulator({
         </div>
       )}
 
-      {/* Breakdown rows — shown for any non-idle verdict */}
-      {showBreakdown && (
-        <div className="mt-4 border-t border-gray-200 pt-3 flex flex-col gap-2">
-          {/* Bank row */}
-          <div className="flex items-baseline justify-between gap-4">
-            <span className="text-[14px] text-gray-600">
-              {t("moneyInBankAfterPayments")} {dueDateLabel}
-            </span>
-            <span
-              className="text-[16px] font-medium text-gray-900"
-              style={{ fontVariantNumeric: "tabular-nums" }}
-            >
-              {formatINR(bank)}
-            </span>
-          </div>
-          {/* Galla row */}
-          <div className="flex items-baseline justify-between gap-4">
-            <span className="text-[14px] text-gray-600">{t("cashInDrawer")}</span>
-            <span
-              className="text-[16px] font-medium text-gray-900"
-              style={{ fontVariantNumeric: "tabular-nums" }}
-            >
-              {formatINR(galla)}
-            </span>
-          </div>
-          {/* Order row */}
-          <div className="flex items-baseline justify-between gap-4">
-            <span className="text-[14px] text-gray-600">{t("paymentLabel")}</span>
-            <span
-              className="text-[16px] font-medium text-gray-900"
-              style={{ fontVariantNumeric: "tabular-nums" }}
-            >
-              {formatINR(orderAmount)}
-            </span>
-          </div>
-          {/* Caption */}
-          <p className="mt-1 text-[14px] text-gray-500">
-            {t("expectedCashCaption")} {cashOutOf10} {t("expectedCashCaptionSuffix")}
-          </p>
-        </div>
-      )}
-
-      {/* Ask AI panel — mounted only when verdict is yellow or red */}
+      {/* Ask AI panel — available for yellow and red verdicts */}
       {showAdvisor && (
         <div className="mt-4">
           <AdvisorPanel

@@ -28,13 +28,22 @@ import {
   SAFE_BUDGET_LABEL,
   SAMPLE_DATA_NOTE,
   SIMULATOR_HEADING,
+  SUPPLIER_NAME_LABEL,
+  SUPPLIER_NAME_PLACEHOLDER,
+  SUPPLIER_PHONE_LABEL,
+  SUPPLIER_PHONE_PLACEHOLDER,
+  SUPPLIER_VPA_LABEL,
+  SUPPLIER_VPA_PLACEHOLDER,
   TOTAL_INFLOW_CAPTION,
   TOTAL_INFLOW_LABEL,
+  UPI_HINT,
   VERDICT_GREEN_HEADING,
   VERDICT_GREEN_TEXT,
   VERDICT_IDLE_TEXT,
   VERDICT_RED_HEADING,
   VERDICT_YELLOW_HEADING,
+  PAY_SUPPLIER_UPI,
+  WHATSAPP_SUPPLIER_BTN,
 } from "../copy";
 
 export type Language = "en" | "hi" | "mr";
@@ -138,6 +147,19 @@ const english = {
   expectedCashCaption:
     "Expected cash includes the money already in your drawer and a guess based on",
   expectedCashCaptionSuffix: "out of 10 customers paying cash.",
+  supplierNameLabel: SUPPLIER_NAME_LABEL,
+  supplierNamePlaceholder: SUPPLIER_NAME_PLACEHOLDER,
+  supplierPhoneLabel: SUPPLIER_PHONE_LABEL,
+  supplierPhonePlaceholder: SUPPLIER_PHONE_PLACEHOLDER,
+  supplierVpaLabel: SUPPLIER_VPA_LABEL,
+  supplierVpaPlaceholder: SUPPLIER_VPA_PLACEHOLDER,
+  upiHint: UPI_HINT,
+  sendOrderViaWhatsApp: WHATSAPP_SUPPLIER_BTN,
+  paySupplierUpi: PAY_SUPPLIER_UPI,
+  copyUpiLink: "Copy UPI Link",
+  upiLinkCopied: "UPI link copied",
+  simulationConfidence: "of 2,000 simulated futures stayed cash-positive",
+  seeHowTested: "See how we tested this →",
 
   // ── AdvisorPanel ──────────────────────────────────────────────────
   advisorHeading: ADVISOR_HEADING,
@@ -145,6 +167,11 @@ const english = {
   advisorLoading: ADVISOR_LOADING,
   advisorNote: ADVISOR_NOTE,
   advisorError: ADVISOR_ERROR,
+  voiceAsk: "Ask by voice",
+  voiceStop: "Stop listening",
+  voiceListening: "Listening…",
+  voiceUnsupported: "Voice input is not supported in this browser.",
+  voiceAnswering: "Speaking the answer…",
 
   // ── AccountAggregatorModal ────────────────────────────────────────
   aaStep1Title: "Connect Bank via Account Aggregator",
@@ -313,6 +340,19 @@ const hindi: Record<TranslationKey, string> = {
   cashInDrawer: "गल्ले में नकद",
   expectedCashCaption: "अनुमानित नकद में गल्ले का पैसा और",
   expectedCashCaptionSuffix: "में से 10 ग्राहकों के नकद भुगतान का अनुमान शामिल है।",
+  supplierNameLabel: "सप्लायर / थोक व्यापारी का नाम",
+  supplierNamePlaceholder: "जैसे शर्मा होलसेल",
+  supplierPhoneLabel: "सप्लायर का व्हाट्सऐप नंबर",
+  supplierPhonePlaceholder: "9876543210",
+  supplierVpaLabel: "सप्लायर UPI आईडी (VPA)",
+  supplierVpaPlaceholder: "जैसे sharmawholesale@okicici",
+  upiHint: "GPay, PhonePe या BHIM सीधे खुलेंगे",
+  sendOrderViaWhatsApp: "व्हाट्सऐप से ऑर्डर भेजें",
+  paySupplierUpi: "UPI से सप्लायर को भुगतान करें",
+  copyUpiLink: "UPI लिंक कॉपी करें",
+  upiLinkCopied: "UPI लिंक कॉपी हो गया",
+  simulationConfidence: "2,000 सिमुलेटेड भविष्य में नकदी सकारात्मक रही",
+  seeHowTested: "देखें हमने कैसे जांचा →",
 
   // ── AdvisorPanel ──────────────────────────────────────────────────
   advisorHeading: "नकदी जुटाने के उपाय",
@@ -320,6 +360,11 @@ const hindi: Record<TranslationKey, string> = {
   advisorLoading: "आपकी दुकान के लिए सुझाव तैयार हो रहे हैं…",
   advisorNote: "सुझाव सामान्य खुदरा मार्गदर्शन हैं। ऑर्डर देने से पहले अपने वास्तविक आंकड़ों से जांच लें।",
   advisorError: "सुझाव प्राप्त नहीं हो सके। बैकएंड सर्वर की जांच करें और पुनः प्रयास करें।",
+  voiceAsk: "आवाज़ से पूछें",
+  voiceStop: "सुनना बंद करें",
+  voiceListening: "सुन रहे हैं…",
+  voiceUnsupported: "इस ब्राउज़र में आवाज़ से पूछना उपलब्ध नहीं है।",
+  voiceAnswering: "जवाब सुनाया जा रहा है…",
 
   // ── AccountAggregatorModal ────────────────────────────────────────
   aaStep1Title: "अकाउंट एग्रीगेटर के ज़रिए बैंक कनेक्ट करें",
@@ -485,6 +530,19 @@ const marathi: Record<TranslationKey, string> = {
   cashInDrawer: "गल्ल्यातील रोख",
   expectedCashCaption: "अपेक्षित रोखमध्ये गल्ल्यातील पैसे आणि",
   expectedCashCaptionSuffix: "पैकी १० ग्राहकांनी रोख दिल्याचा अंदाज समाविष्ट आहे.",
+  supplierNameLabel: "पुरवठादार / घाऊक व्यापाऱ्याचे नाव",
+  supplierNamePlaceholder: "उदा. शर्मा होलसेल",
+  supplierPhoneLabel: "पुरवठादाराचा व्हॉट्सॲप नंबर",
+  supplierPhonePlaceholder: "9876543210",
+  supplierVpaLabel: "पुरवठादाराचा UPI आयडी (VPA)",
+  supplierVpaPlaceholder: "उदा. sharmawholesale@okicici",
+  upiHint: "GPay, PhonePe किंवा BHIM थेट उघडेल",
+  sendOrderViaWhatsApp: "व्हॉट्सॲपवरून ऑर्डर पाठवा",
+  paySupplierUpi: "UPI द्वारे पुरवठादाराला पैसे द्या",
+  copyUpiLink: "UPI लिंक कॉपी करा",
+  upiLinkCopied: "UPI लिंक कॉपी झाली",
+  simulationConfidence: "२,००० सिम्युलेटेड भविष्यांमध्ये रोख शिल्लक सकारात्मक राहिली",
+  seeHowTested: "आम्ही कसे तपासले ते पहा →",
 
   // ── AdvisorPanel ──────────────────────────────────────────────────
   advisorHeading: "रोख रक्कम उभी करण्याचे उपाय",
@@ -492,6 +550,11 @@ const marathi: Record<TranslationKey, string> = {
   advisorLoading: "तुमच्या दुकानासाठी कल्पना विचारत आहोत…",
   advisorNote: "सूचना सामान्य किरकोळ स्वरूपाच्या आहेत. ऑर्डर देण्यापूर्वी तुमच्या प्रत्यक्ष दुकानाच्या आकड्यांशी पडताळणी करा.",
   advisorError: "कल्पना मिळवता आल्या नाहीत. बॅकएंड सर्व्हर चालू असल्याची खात्री करा आणि पुन्हा प्रयत्न करा.",
+  voiceAsk: "आवाजाने विचारा",
+  voiceStop: "ऐकणे थांबवा",
+  voiceListening: "ऐकत आहे…",
+  voiceUnsupported: "या ब्राउझरमध्ये आवाजाने विचारणे उपलब्ध नाही.",
+  voiceAnswering: "उत्तर ऐकवले जात आहे…",
 
   // ── AccountAggregatorModal ────────────────────────────────────────
   aaStep1Title: "अकाउंट ॲग्रीगेटरद्वारे बँक जोडा",
