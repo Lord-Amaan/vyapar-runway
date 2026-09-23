@@ -43,12 +43,25 @@ async def lifespan(app: FastAPI):  # noqa: ANN001, ARG001
 
 app = FastAPI(lifespan=lifespan)
 
+# Allow localhost, Vercel deployments (*.vercel.app), and custom origins via ALLOWED_ORIGINS
+allowed_origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://localhost:5001",
+    "http://localhost:8000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+]
+if os.environ.get("ALLOWED_ORIGINS"):
+    allowed_origins.extend([o.strip() for o in os.environ["ALLOWED_ORIGINS"].split(",") if o.strip()])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|^https://.*\.vercel\.app$",
     allow_credentials=True,
-    allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
