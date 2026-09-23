@@ -3,6 +3,12 @@ export const APP_SUBTITLE = "Festival Stock Planner";
 export const BANK_LABEL = "Expected UPI money";
 export const GALLA_LABEL = "Expected cash sales";
 export const PAYMENT_LABEL = "Wholesaler Payment";
+export const PAY_SUPPLIER_UPI = "Pay Supplier via UPI";
+export const SUPPLIER_VPA_LABEL = "Supplier UPI ID (VPA)";
+export const UPI_HINT = "Opens GPay, PhonePe, or BHIM directly";
+export const WHATSAPP_SUPPLIER_BTN = "Send Order via WhatsApp";
+export const SUPPLIER_NAME_LABEL = "Supplier / Wholesaler Name";
+export const SUPPLIER_PHONE_LABEL = "Supplier WhatsApp Number";
 export const SAMPLE_DATA_NOTE = "Sample data for demo";
 
 export const BANK_SUM_LABEL = "Expected UPI money · next 30 days";

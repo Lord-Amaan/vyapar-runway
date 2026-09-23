@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { translate, type Language } from "../i18n";
+import type { DetectedObligation } from "../types";
 
 interface AccountAggregatorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConnected: (verifiedBalance: number) => void;
+  onConnected: (verifiedBalance: number, obligations: DetectedObligation[]) => void;
   language?: Language;
 }
 
@@ -31,7 +32,10 @@ export default function AccountAggregatorModal({
   useEffect(() => {
     if (step !== 3) return;
     const timer = setTimeout(() => {
-      onConnected(74500);
+      onConnected(74500, [
+        { label: "Rent / Landlord", amount: 15000, dayOfMonth: 5 },
+        { label: "Staff Salary", amount: 12000, dayOfMonth: 1 },
+      ]);
       onClose();
     }, 1200);
     return () => clearTimeout(timer);

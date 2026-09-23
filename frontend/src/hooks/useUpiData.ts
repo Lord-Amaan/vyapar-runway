@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { UpiDay } from "../types";
+import type { DetectedObligation, UpiDay } from "../types";
 import { API_URL } from "../lib/api";
 
 type Status = "loading" | "error" | "success";
@@ -19,10 +19,32 @@ function isValidResponse(data: unknown): data is UpiDay[] {
 
 function isForecastEnvelope(
   data: unknown,
-): data is { predictions: UpiDay[]; model?: { warning?: unknown } } {
+): data is {
+  predictions: UpiDay[];
+  model?: { warning?: unknown };
+  detectedObligations?: DetectedObligation[];
+} {
   if (typeof data !== "object" || data === null) return false;
   const record = data as Record<string, unknown>;
-  return Array.isArray(record.predictions) && isValidResponse(record.predictions);
+  if (!Array.isArray(record.predictions) || !isValidResponse(record.predictions)) return false;
+  if (record.detectedObligations === undefined) return true;
+  return (
+    Array.isArray(record.detectedObligations) &&
+    record.detectedObligations.every((item) => {
+      if (typeof item !== "object" || item === null) return false;
+      const obligation = item as Record<string, unknown>;
+      return (
+        typeof obligation.label === "string" &&
+        typeof obligation.amount === "number" &&
+        Number.isFinite(obligation.amount) &&
+        obligation.amount >= 0 &&
+        typeof obligation.dayOfMonth === "number" &&
+        Number.isInteger(obligation.dayOfMonth) &&
+        obligation.dayOfMonth >= 1 &&
+        obligation.dayOfMonth <= 31
+      );
+    })
+  );
 }
 
 export function useUpiData() {
@@ -32,6 +54,7 @@ export function useUpiData() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [modelWarning, setModelWarning] = useState<string | null>(null);
+  const [detectedObligations, setDetectedObligations] = useState<DetectedObligation[]>([]);
   const fetchIdRef = useRef(0);
 
   const fetchData = useCallback(() => {
@@ -76,6 +99,7 @@ export function useUpiData() {
     setSourceSelected(true);
     setUploadError(null);
     setModelWarning(null);
+    setDetectedObligations([]);
   }, []);
 
   const uploadCsv = useCallback(async (file: File) => {
@@ -105,6 +129,7 @@ export function useUpiData() {
           ? data.model.warning
           : null,
       );
+          setDetectedObligations(data.detectedObligations ?? []);
       setSourceSelected(true);
     } catch (error: unknown) {
       setUploadError(error instanceof Error ? error.message : "Could not use this file");
@@ -123,5 +148,6 @@ export function useUpiData() {
     uploading,
     uploadError,
     modelWarning,
+    detectedObligations,
   } as const;
 }

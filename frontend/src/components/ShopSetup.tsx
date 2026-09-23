@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
-import type { ShopInputs } from "../types";
+import { Fragment, useState, useEffect } from "react";
+import type { DetectedObligation, ShopInputs } from "../types";
 import { translate, type Language } from "../i18n";
 
 interface ShopSetupProps {
   onContinue: (inputs: ShopInputs) => void;
   initialBankBalance?: number;
   aaBadge?: React.ReactNode;
+  detectedObligations?: DetectedObligation[];
   language: Language;
 }
 
@@ -15,7 +16,13 @@ function formatIndian(value: number): string {
   return value === 0 ? "" : new Intl.NumberFormat("en-IN").format(value);
 }
 
-export default function ShopSetup({ onContinue, initialBankBalance, aaBadge, language }: ShopSetupProps) {
+export default function ShopSetup({
+  onContinue,
+  initialBankBalance,
+  aaBadge,
+  detectedObligations = [],
+  language,
+}: ShopSetupProps) {
   const t = (key: Parameters<typeof translate>[1]) => translate(language, key);
 
   // Field configuration with i18n keys
@@ -58,6 +65,13 @@ export default function ShopSetup({ onContinue, initialBankBalance, aaBadge, lan
     moneyGoingOut: "",
     promisedPayments: "",
   });
+  const [selectedObligations, setSelectedObligations] = useState<boolean[]>(
+    () => detectedObligations.map(() => true),
+  );
+
+  useEffect(() => {
+    setSelectedObligations(detectedObligations.map(() => true));
+  }, [detectedObligations]);
 
   useEffect(() => {
     if (initialBankBalance !== undefined && initialBankBalance !== null) {
@@ -78,6 +92,16 @@ export default function ShopSetup({ onContinue, initialBankBalance, aaBadge, lan
     onContinue(values);
   }
 
+  function handleAddObligations() {
+    const total = detectedObligations.reduce(
+      (sum, obligation, index) =>
+        sum + (selectedObligations[index] ? obligation.amount : 0),
+      0,
+    );
+    setValues((current) => ({ ...current, moneyGoingOut: total }));
+    setRawValues((current) => ({ ...current, moneyGoingOut: formatIndian(total) }));
+  }
+
   return (
     <section className="shop-setup" aria-labelledby="shop-setup-title">
       <div className="shop-setup-intro">
@@ -88,24 +112,65 @@ export default function ShopSetup({ onContinue, initialBankBalance, aaBadge, lan
 
       <form className="shop-setup-form" onSubmit={handleSubmit}>
         {fields.map(({ key, labelKey, helperKey, placeholder }) => (
-          <div className="shop-setup-field" key={key}>
-            <label htmlFor={`shop-${key}`}>{t(labelKey)}</label>
-            <div className="shop-setup-input">
-              <span aria-hidden="true">₹</span>
-              <input
-                id={`shop-${key}`}
-                type="text"
-                inputMode="numeric"
-                value={rawValues[key]}
-                onChange={(event) => updateField(key, event.target.value)}
-                placeholder={placeholder}
-              />
-            </div>
-            <p>{t(helperKey)}</p>
-            {key === "bankBalance" && aaBadge && (
-              <div className="mt-1">{aaBadge}</div>
+          <Fragment key={key}>
+            {key === "moneyGoingOut" && detectedObligations.length > 0 && (
+              <div className="col-span-full rounded-md border border-[#DEDBD4] bg-[#FFFEFA] p-4">
+                <h3
+                  className="text-[16px] font-semibold text-[#190B05]"
+                  style={{ fontFamily: "Sentient, 'Iowan Old Style', Baskerville, Georgia, serif" }}
+                >
+                  Detected Recurring Monthly Bills
+                </h3>
+                <div className="mt-3 flex flex-col gap-2">
+                  {detectedObligations.map((obligation, index) => (
+                    <label
+                      key={`${obligation.label}-${obligation.dayOfMonth}`}
+                      className="flex items-center gap-2 text-[14px] text-[#1B0D08]"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedObligations[index] ?? true}
+                        onChange={(event) => {
+                          const next = [...selectedObligations];
+                          next[index] = event.target.checked;
+                          setSelectedObligations(next);
+                        }}
+                        className="accent-[#B65F3E]"
+                      />
+                      <span>
+                        {obligation.label} · ₹{new Intl.NumberFormat("en-IN").format(obligation.amount)} · monthly on day {obligation.dayOfMonth}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddObligations}
+                  className="mt-3 h-9 px-3 rounded-md border border-[#DEDBD4] bg-[#FFFEFA] text-xs font-medium text-[#1B0D08] hover:bg-[#F6E8E0] focus:outline-none focus:ring-2 focus:ring-[#B65F3E]"
+                >
+                  Add to committed outflows
+                </button>
+              </div>
             )}
-          </div>
+            <div className="shop-setup-field">
+              <label htmlFor={`shop-${key}`}>{t(labelKey)}</label>
+              <div className="shop-setup-input">
+                <span aria-hidden="true">₹</span>
+                <input
+                  id={`shop-${key}`}
+                  type="text"
+                  inputMode="numeric"
+                  value={rawValues[key]}
+                  onChange={(event) => updateField(key, event.target.value)}
+                  placeholder={placeholder}
+                />
+              </div>
+              <p>{t(helperKey)}</p>
+              {key === "bankBalance" && aaBadge && (
+                <div className="mt-1">{aaBadge}</div>
+              )}
+            </div>
+          </Fragment>
         ))}
         <button type="submit" className="primary-action shop-setup-submit">
           {t("shopSetupSubmit")}

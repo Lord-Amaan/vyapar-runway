@@ -43,3 +43,64 @@ export async function fetchAdvice(
 
   return [data[0] as string, data[1] as string, data[2] as string];
 }
+
+export interface BayesianStats {
+  alphaPost: number;
+  betaPost: number;
+  priorMean: number;
+  ownerEstimate: number;
+  posteriorMean: number;
+  posteriorStd: number;
+  p10: number;
+  p50: number;
+  p90: number;
+}
+
+export interface DailyTrajectoryPoint {
+  date: string;
+  p10: number;
+  p50: number;
+  p90: number;
+}
+
+export interface SimulationResult {
+  safetyConfidencePct: number;
+  ruinProbability: number;
+  draws: number;
+  dueIndex: number;
+  p10Buffer: number;
+  p50Buffer: number;
+  p90Buffer: number;
+  bayesian: BayesianStats;
+  dailySeries: DailyTrajectoryPoint[];
+}
+
+export interface SimulationParams {
+  orderAmount: number;
+  dueDate: string;
+  cashOutOf10: number;
+  bankBalance: number;
+  drawerCash: number;
+  dailyFixedExpense: number;
+  promisedPayments: number;
+  dailyUpiForecast?: Array<{ date: string; amount: number }>;
+}
+
+export async function fetchSimulation(
+  params: SimulationParams,
+  signal?: AbortSignal,
+): Promise<SimulationResult> {
+  const res = await fetch(`${API_URL}/api/simulate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+    signal,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Simulation failed: HTTP ${res.status}`);
+  }
+
+  return (await res.json()) as SimulationResult;
+}
+

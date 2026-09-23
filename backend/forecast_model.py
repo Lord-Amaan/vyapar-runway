@@ -27,6 +27,125 @@ logger = logging.getLogger(__name__)
 # ── helpers ────────────────────────────────────────────────────────
 
 
+def _numeric_series(series: pd.Series) -> pd.Series:
+    """Parse statement amounts that may contain commas or a rupee symbol."""
+    return pd.to_numeric(
+        series.astype(str)
+        .str.replace(",", "", regex=False)
+        .str.replace("₹", "", regex=False)
+        .str.replace("Rs.", "", regex=False)
+        .str.strip(),
+        errors="coerce",
+    )
+
+
+def detect_recurring_obligations(raw: bytes) -> list[dict[str, object]]:
+    """Find monthly debit patterns in an uploaded merchant statement.
+
+    This is intentionally independent of the sales history used by Prophet:
+    statements with only date/amount sales rows simply return no obligations.
+    """
+    try:
+        statement = pd.read_csv(BytesIO(raw))
+    except Exception:  # noqa: BLE001
+        return []
+
+    columns = {str(column).strip().lower(): column for column in statement.columns}
+    date_column = next(
+        (columns[name] for name in ("date", "transaction_date", "value_date", "ds") if name in columns),
+        None,
+    )
+    if date_column is None:
+        return []
+
+    raw_dates = statement[date_column].astype(str).str.strip()
+    iso_dates = raw_dates.str.match(r"^\d{4}-\d{2}-\d{2}$")
+    dates = pd.Series(pd.NaT, index=statement.index, dtype="datetime64[ns]")
+    dates.loc[iso_dates] = pd.to_datetime(
+        raw_dates.loc[iso_dates], dayfirst=False, errors="coerce"
+    )
+    dates.loc[~iso_dates] = pd.to_datetime(
+        raw_dates.loc[~iso_dates], dayfirst=True, errors="coerce"
+    )
+    dates = dates.dt.normalize()
+    debit_names = ("debit", "withdrawal", "withdrawals", "debit_amount", "paid")
+    debit_column = next((columns[name] for name in debit_names if name in columns), None)
+    amount_names = ("amount", "value", "transaction_amount", "y")
+    amount_column = next((columns[name] for name in amount_names if name in columns), None)
+    direction_column = next(
+        (columns[name] for name in ("type", "transaction_type", "direction", "dr_cr") if name in columns),
+        None,
+    )
+    description_column = next(
+        (
+            columns[name]
+            for name in ("description", "narration", "counterparty", "merchant", "payee", "remarks", "particulars")
+            if name in columns
+        ),
+        None,
+    )
+
+    if debit_column is not None:
+        amounts = _numeric_series(statement[debit_column]).abs()
+        debit_mask = amounts > 0
+    elif amount_column is not None:
+        amounts = _numeric_series(statement[amount_column]).abs()
+        debit_mask = pd.Series(True, index=statement.index)
+        if direction_column is not None:
+            direction = statement[direction_column].astype(str).str.lower()
+            debit_mask = direction.str.contains(r"debit|withdraw|paid|dr", regex=True, na=False)
+        elif description_column is None:
+            return []
+    else:
+        return []
+
+    rows = pd.DataFrame({"date": dates, "amount": amounts})
+    rows["description"] = (
+        statement[description_column].astype(str).str.strip()
+        if description_column is not None
+        else ""
+    )
+    rows = rows[debit_mask & rows["date"].notna() & rows["amount"].notna() & (rows["amount"] > 0)]
+    if rows.empty:
+        return []
+
+    def identifier(description: str, amount: float) -> str:
+        cleaned = " ".join(description.lower().split())
+        if cleaned and cleaned not in {"nan", "none", "-"}:
+            return cleaned
+        return f"amount:{round(amount / 100) * 100:.0f}"
+
+    rows["identifier"] = [identifier(desc, amount) for desc, amount in zip(rows["description"], rows["amount"])]
+    rows["amount_key"] = (rows["amount"] / 100).round().astype(int)
+    obligations: list[dict[str, object]] = []
+    seen_obligations: set[tuple[str, int, int]] = set()
+    grouped_patterns = list(rows.groupby("identifier"))
+    grouped_patterns.extend(rows.groupby("amount_key"))
+    for _, group in grouped_patterns:
+        dates_sorted = group["date"].sort_values().drop_duplicates()
+        intervals = dates_sorted.diff().dt.days.dropna()
+        if len(dates_sorted) < 2 or not intervals.between(28, 32).all():
+            continue
+
+        amount = int(round(float(group["amount"].median()) / 100) * 100)
+        day_of_month = int(group["date"].dt.day.mode().iloc[0])
+        description = str(group["description"].iloc[0]).lower()
+        if "rent" in description or "landlord" in description or "lease" in description:
+            label = "Rent / Landlord"
+        elif "salary" in description or "payroll" in description or "staff" in description or "wage" in description:
+            label = "Staff Salary"
+        else:
+            label = str(group["description"].iloc[0]).strip() or "Recurring debit"
+
+        obligation_key = (label[:80], amount, day_of_month)
+        if obligation_key in seen_obligations:
+            continue
+        seen_obligations.add(obligation_key)
+        obligations.append({"label": label[:80], "amount": amount, "dayOfMonth": day_of_month})
+
+    return sorted(obligations, key=lambda item: (int(item["dayOfMonth"]), str(item["label"])))
+
+
 def load_history() -> pd.DataFrame:
     """Read the history CSV, generating it first if missing."""
     if not CSV_PATH.exists():

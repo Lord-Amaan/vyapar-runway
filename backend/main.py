@@ -15,7 +15,8 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, field_validator
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from forecast_model import build_predictions, build_predictions_from_upload
+from forecast_model import build_predictions, build_predictions_from_upload, detect_recurring_obligations
+from simulation import run_monte_carlo_simulation
 
 load_dotenv()
 
@@ -76,13 +77,46 @@ async def forecast(file: UploadFile = File(...)):
 
     try:
         predictions, model_info = await run_in_threadpool(build_predictions_from_upload, raw)
+        detected_obligations = await run_in_threadpool(detect_recurring_obligations, raw)
     except ValueError as exc:
         return JSONResponse(status_code=422, content={"error": str(exc)})
     except Exception:  # noqa: BLE001
         logger.exception("uploaded forecast failed")
         return JSONResponse(status_code=500, content={"error": "Could not build a forecast from this file"})
 
-    return {"predictions": predictions, "model": model_info}
+    return {
+        "predictions": predictions,
+        "model": model_info,
+        "detectedObligations": detected_obligations,
+    }
+
+
+class SimulateRequest(BaseModel):
+    orderAmount: float = 0.0
+    dueDate: str = ""
+    cashOutOf10: int = 4
+    bankBalance: float = 0.0
+    drawerCash: float = 0.0
+    dailyFixedExpense: float = 0.0
+    promisedPayments: float = 0.0
+    dailyUpiForecast: list[dict] | None = None
+
+
+@app.post("/api/simulate")
+async def simulate_endpoint(req: SimulateRequest) -> dict:
+    forecast_data = req.dailyUpiForecast if req.dailyUpiForecast else _predictions
+    return await run_in_threadpool(
+        run_monte_carlo_simulation,
+        daily_upi_forecast=forecast_data,
+        cash_out_of_10=req.cashOutOf10,
+        bank_balance=req.bankBalance,
+        drawer_cash=req.drawerCash,
+        daily_fixed_expense=req.dailyFixedExpense,
+        promised_payments=req.promisedPayments,
+        order_amount=req.orderAmount,
+        due_date=req.dueDate,
+        draws=2000,
+    )
 
 
 # ── advisor ────────────────────────────────────────────────────────
@@ -175,8 +209,9 @@ def _format_due_date(iso: str) -> str:
 
 @app.post("/api/advisor")
 async def advisor(req: AdvisorRequest) -> list[str]:
+    load_dotenv(override=True)
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    model_name = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+    model_name = os.environ.get("GEMINI_MODEL", "gemini-3-flash-preview").strip()
 
     if not api_key:
         logger.info("advisor: fallback (no GEMINI_API_KEY)")
@@ -231,7 +266,7 @@ async def advisor(req: AdvisorRequest) -> list[str]:
 
     except Exception as exc:  # noqa: BLE001
         reason = type(exc).__name__
-        logger.info("advisor: fallback (%s)", reason)
+        logger.warning("advisor: fallback (%s: %s)", reason, exc)
         return _FALLBACK_IDEAS
 
 

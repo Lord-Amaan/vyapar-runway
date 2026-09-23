@@ -11,7 +11,7 @@ import ShopSetup from "./components/ShopSetup";
 import DataImport from "./components/DataImport";
 import AccountAggregatorModal from "./components/AccountAggregatorModal";
 import LanguageSelect from "./components/LanguageSelect";
-import type { ShopInputs } from "./types";
+import type { DetectedObligation, ShopInputs } from "./types";
 import { translate, type Language } from "./i18n";
 
 function Dashboard({
@@ -32,15 +32,18 @@ function Dashboard({
     uploading,
     uploadError,
     modelWarning,
+    detectedObligations,
   } = useUpiData();
   const [cashOutOf10, setCashOutOf10] = useState(4);
   const [shopInputs, setShopInputs] = useState<ShopInputs | null>(null);
   const [aaModalOpen, setAaModalOpen] = useState(false);
   const [aaConnected, setAaConnected] = useState(false);
   const [aaVerifiedBalance, setAaVerifiedBalance] = useState<number | null>(null);
+  const [aaObligations, setAaObligations] = useState<DetectedObligation[]>([]);
 
-  function handleAaConnected(verifiedBalance: number) {
+  function handleAaConnected(verifiedBalance: number, obligations: DetectedObligation[]) {
     setAaVerifiedBalance(verifiedBalance);
+    setAaObligations(obligations);
     setAaConnected(true);
     setShopInputs((prev) => (prev ? { ...prev, bankBalance: verifiedBalance } : null));
   }
@@ -156,6 +159,7 @@ function Dashboard({
               <ShopSetup
                 onContinue={setShopInputs}
                 initialBankBalance={aaVerifiedBalance ?? undefined}
+                detectedObligations={detectedObligations.length > 0 ? detectedObligations : aaObligations}
                 language={language}
                 aaBadge={
                   aaConnected ? (

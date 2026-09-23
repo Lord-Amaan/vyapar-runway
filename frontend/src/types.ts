@@ -10,6 +10,12 @@ export interface ShopInputs {
   promisedPayments: number;
 }
 
+export interface DetectedObligation {
+  label: string;
+  amount: number;
+  dayOfMonth: number;
+}
+
 export interface ForecastDay {
   date: string;
   bankMoney: number;
