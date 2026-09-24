@@ -1,32 +1,43 @@
-# React + TypeScript + Vite
+# Vyapar Runway (Frontend)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Vyapar Runway helps small shop owners understand cash flow, forecast daily inflow, and check if they can safely place a supplier order.
 
-Currently, two official plugins are available:
+Live app: https://vyapar-runway.vercel.app
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech Stack
 
-## React Compiler
+- React + TypeScript
+- Vite
+- Tailwind CSS
+- Recharts
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Local Setup
 
-## Expanding the Oxlint configuration
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Start development server:
+   ```bash
+   npm run dev
+   ```
+3. Build for production:
+   ```bash
+   npm run build
+   ```
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Simple Architecture
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
+- `frontend` renders dashboard, input forms, charts, and language-aware UI copy.
+- `backend` (FastAPI) serves prediction, simulation, and advisor APIs.
+- Frontend calls backend APIs for:
+  - forecast generation from CSV data
+  - Monte Carlo cash risk simulation
+  - short actionable advisor suggestions
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Main Scripts
+
+- `npm run dev` - run local development server
+- `npm run build` - type-check and create production build
+- `npm run lint` - run oxlint
+- `npm run preview` - preview production build locally
